@@ -1,0 +1,97 @@
+/* ==========================================================================
+   TechtivAI design tokens — hero v1
+   Brand values are taken 1:1 from the live site's :root (techtivai.vercel.app,
+   inspected 20 Nov 2026). Anything marked "derived" is built only from those
+   brand values (opacity / mixes), no new hues.
+   ========================================================================== */
+:root {
+  /* ---- Brand palette (live site) ---- */
+  --bg-primary: #030d06;
+  --bg-secondary: #020b0e;
+  --surface-card: #061209;
+  --surface-elevated: #040e12;
+  --accent-lime: #c6ff00;
+  --accent-cyan: #3de8ff;
+  --text-primary: #e8fff5;
+  --text-muted: #4a8a72;
+  --text-on-accent: #000;
+  --border-subtle: #3de8ff24;
+  --border-highlight: #c6ff0059;
+  --ghost-btn-border: #3de8ff73;
+  --hero-eyebrow-bg: #c6ff000f;
+  --hero-eyebrow-border: #c6ff0059;
+  --icon-wrap-bg: #c6ff000f;
+  --icon-wrap-border: #c6ff0033;
+  --nav-bg: #030d06e6;
+  --nav-hover-bg: #c6ff0012;
+  --shadow-lime: #c6ff002e;
+  --shadow-cyan: #3de8ff24;
+  --cursor-dot: var(--accent-lime);
+  --cursor-ring: #c6ff008c;
+  --ring: var(--accent-cyan);
+  --gradient-brand: linear-gradient(95deg, var(--accent-cyan) 0%, var(--accent-lime) 100%);
+
+  /* ---- Derived text tones ---- */
+  --text-body: rgb(232 255 245 / 0.74);      /* derived: text-primary @ 74% */
+  --text-soft: rgb(232 255 245 / 0.56);      /* derived: text-primary @ 56% */
+
+  /* ---- Glass material (derived) ---- */
+  --glass-fill: linear-gradient(155deg, rgb(232 255 245 / 0.075) 0%, rgb(6 18 9 / 0.42) 38%, rgb(2 11 14 / 0.58) 100%);
+  --glass-blur: 18px;
+  --glass-saturate: 140%;
+  --glass-border: rgb(232 255 245 / 0.11);
+  --glass-border-strong: rgb(232 255 245 / 0.2);
+  --glass-inner-highlight: inset 0 1px 0 rgb(232 255 245 / 0.10), inset 0 0 0 1px rgb(232 255 245 / 0.02);
+  --glass-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.85), 0 10px 24px -12px rgb(0 0 0 / 0.6);
+
+  /* ---- Typography ---- */
+  --font-display: "Clash Display", system-ui, sans-serif;
+  --font-body: "Cabinet Grotesk", system-ui, sans-serif;
+  --fs-eyebrow: 0.75rem;
+  --fs-small: 0.875rem;
+  --fs-body: clamp(1rem, 0.94rem + 0.28vw, 1.1875rem);
+  --fs-card-title: 1.0625rem;
+  --fs-display: clamp(2.75rem, 1.2rem + 5.4vw, 6rem);
+  --lh-display: 0.98;
+  --ls-display: -0.035em;
+  --ls-eyebrow: 0.18em;
+
+  /* ---- Spacing (4px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --content-max: 1320px;
+
+  /* ---- Radii (live site surface scale) ---- */
+  --radius-sm: 8px;
+  --radius-btn: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+  --dur-slow: 640ms;
+
+  /* ---- Layers ---- */
+  --z-canvas: 0;
+  --z-content: 2;
+  --z-cards: 3;
+  --z-nav: 20;
+  --z-cursor: 100;
+
+  /* ---- Breakpoints (reference — used in @media literals) ----
+     mobile < 768 · tablet 768–1099 · desktop ≥ 1100 */
+}

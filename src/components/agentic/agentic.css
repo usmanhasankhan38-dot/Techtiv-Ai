@@ -1,0 +1,152 @@
+/* ==========================================================================
+   Section 06 — AI / Agentic Solutions
+   Part A: AgentForce core (reference 02 composition) — shader core centre,
+   two capability modules each side, luminous connector paths.
+   Part B: cinematic bento (reference 03) — seven cards, stage-light cones,
+   bespoke animated interfaces. Brand tokens only.
+   ========================================================================== */
+.ag {
+  position: relative;
+  z-index: 1;
+  padding: clamp(96px, 14vh, 160px) var(--gutter);
+}
+.ag::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: min(1200px, 100%);
+  height: 760px;
+  translate: -50% 0;
+  background:
+    radial-gradient(36% 40% at 50% 46%, rgb(61 232 255 / 0.07), transparent 70%),
+    radial-gradient(24% 26% at 50% 46%, rgb(198 255 0 / 0.05), transparent 70%),
+    radial-gradient(rgb(232 255 245 / 0.05) 1px, transparent 1.2px) 0 0 / 22px 22px;
+  -webkit-mask-image: radial-gradient(50% 50% at 50% 46%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(50% 50% at 50% 46%, #000 30%, transparent 75%);
+  pointer-events: none;
+}
+
+/* ---------- head ---------- */
+.ag__head {
+  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ag__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--space-6);
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hero-eyebrow-border);
+  background: var(--hero-eyebrow-bg);
+  color: var(--accent-lime);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+}
+.ag__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+}
+.ag__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.3rem, 1.1rem + 3vw, 4.25rem);
+  line-height: 1;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+}
+.ag__line {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.06em 0.1em;
+  margin-bottom: -0.1em;
+}
+.ag__line > span {
+  display: inline-block;
+  transform-origin: 0% 100%;
+}
+.ag__line--accent > span {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ag__desc {
+  margin: var(--space-6) 0 0;
+  max-width: 38em;
+  font-size: var(--fs-body);
+  color: var(--text-body);
+  text-wrap: pretty;
+}
+
+/* ---------- featured label ---------- */
+.ag__feat {
+  position: relative;
+  margin: clamp(64px, 9vh, 104px) auto 0;
+  max-width: 720px;
+  text-align: center;
+}
+.ag__feat-k {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-lime);
+}
+.ag__feat-name {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 2rem);
+  letter-spacing: -0.02em;
+}
+.ag__feat-name span {
+  color: var(--accent-cyan);
+}
+.ag__feat-desc {
+  margin: 8px auto 0;
+  max-width: 36em;
+  font-size: 0.9375rem;
+  color: var(--text-soft);
+}
+.ag__cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+/* idle motion rests while the section is off screen */
+.ag.is-offscreen *,
+.ag.is-offscreen *::before,
+.ag.is-offscreen *::after {
+  animation-play-state: paused !important;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 680px) {
+  .ag__cta .btn { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag *,
+  .ag *::before,
+  .ag *::after {
+    animation: none !important;
+  }
+}

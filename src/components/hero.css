@@ -1,0 +1,434 @@
+/* ==========================================================================
+   Hero
+   Desktop (≥1100): 180vh scroll track, 100svh sticky stage, floating cards.
+   Tablet/mobile: natural flow — copy, globe, card grid, strip.
+   ========================================================================== */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero__stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding: 104px var(--gutter) var(--space-10);
+  gap: var(--space-8);
+  overflow: hidden;
+}
+
+/* ---------- copy ---------- */
+.hero__copy {
+  order: 1;
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 980px;
+}
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--space-6);
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hero-eyebrow-border);
+  background: var(--hero-eyebrow-bg);
+  color: var(--accent-lime);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hero__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+  animation: pulse 2.4s var(--ease-in-out) infinite;
+}
+@keyframes pulse {
+  50% { box-shadow: 0 0 0 7px rgb(198 255 0 / 0), 0 0 10px var(--accent-lime); }
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.hero__line {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.06em 0.1em; /* room for descenders inside the mask */
+  margin-bottom: -0.1em;
+}
+.hero__line > span {
+  display: inline-block;
+  transform-origin: 0% 100%;
+}
+.hero__line--accent > span {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-right: 0.04em;
+}
+
+.hero__sub {
+  margin: var(--space-6) 0 0;
+  max-width: 34em;
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--text-body);
+  text-wrap: pretty;
+}
+
+.hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+.hero__ctas > span {
+  display: inline-flex;
+}
+
+/* ---------- globe ---------- */
+.hero__globe {
+  order: 2;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: clamp(320px, 92vw, 520px);
+  margin-block: calc(var(--space-4) * -1);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.globe-anchor {
+  position: relative;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.hero__globe-anchor {
+  width: min(80%, 78% * 1);
+  max-width: 420px;
+}
+.globe-fallback {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, rgb(232 255 245 / 0.12), transparent 48%),
+    radial-gradient(circle, rgb(232 255 245 / 0.26) 0.9px, transparent 1.5px) 0 0 / 8px 8px,
+    radial-gradient(circle at 50% 50%, #06140b 58%, #030d06 100%);
+  box-shadow: 0 0 0 1px rgb(198 255 0 / 0.16), 0 0 70px rgb(198 255 0 / 0.14), 0 0 120px rgb(61 232 255 / 0.1),
+    inset -40px -50px 90px rgb(0 0 0 / 0.75);
+}
+
+/* ---------- cards ---------- */
+.hero__cards {
+  order: 3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 760px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  position: relative;
+  z-index: var(--z-cards);
+}
+.hero__card {
+  display: flex;
+}
+.hero__card .glass-float {
+  width: 100%;
+  display: flex;
+}
+
+/* ---------- bottom strip ---------- */
+.hero__strip {
+  order: 4;
+  position: relative;
+  z-index: var(--z-cards);
+  width: 100%;
+  max-width: 760px;
+  display: grid;
+  gap: var(--space-4);
+  padding: 16px 18px;
+}
+.hero__strip-lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hero__strip-lead p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--text-soft);
+}
+.hero__strip-lead strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.hero__strip-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--icon-wrap-bg);
+  border: 1px solid var(--icon-wrap-border);
+  color: var(--accent-lime);
+}
+.hero__strip-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+.hero__strip-list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hero__strip-list dt {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
+}
+.hero__strip-list dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .hero__stage {
+    padding-top: 128px;
+  }
+  .hero__globe {
+    height: clamp(440px, 64vw, 600px);
+  }
+  .hero__globe-anchor {
+    max-width: 470px;
+  }
+  .hero__strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero__strip-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Desktop: cinematic composition
+   ========================================================================== */
+@media (min-width: 1100px) {
+  .hero {
+    height: 160vh;
+  }
+  .hero__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    min-height: 720px;
+    display: block;
+    padding: 0;
+  }
+  .hero__globe {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    margin: 0;
+    display: block;
+  }
+  .hero__globe-anchor {
+    position: absolute;
+    left: 50%;
+    top: 80%;
+    width: min(46vh, 34vw);
+    max-width: none;
+    translate: -50% -50%;
+  }
+  .hero__copy {
+    position: absolute;
+    left: 50%;
+    top: clamp(104px, 15vh, 150px);
+    translate: -50% 0;
+    width: min(980px, 90vw);
+  }
+  .hero__title {
+    font-size: clamp(3.5rem, 6.4vh + 2.2vw, 6.25rem);
+  }
+  .hero__sub {
+    margin-top: clamp(16px, 2.4vh, 28px);
+  }
+  .hero__ctas {
+    margin-top: clamp(20px, 3.4vh, 36px);
+  }
+
+  .hero__cards {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    display: block;
+    pointer-events: none;
+  }
+  .hero__card {
+    position: absolute;
+    width: var(--card-w);
+    pointer-events: auto;
+  }
+  .hero__card .glass-card {
+    row-gap: 14px;
+    padding: 16px;
+  }
+  .hero__card .glass-card__icon {
+    width: 40px;
+    height: 40px;
+  }
+  /* two cards per side, stepped like the reference; the lower pair sits at the
+     outer edge so the info strip has a clear lane between them */
+  .hero__stage {
+    --card-edge: max(var(--gutter), calc(50% - 610px));
+    --card-w: clamp(226px, 16.5vw, 256px);
+  }
+  .hero__card--tl { left: calc(var(--card-edge) + 36px); top: 43%; }
+  .hero__card--bl { left: var(--card-edge); top: 64%; }
+  .hero__card--tr { right: calc(var(--card-edge) + 28px); top: 41%; }
+  .hero__card--br { right: var(--card-edge); top: 62%; }
+
+  .hero__strip {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(18px, 3.2vh, 32px);
+    translate: -50% 0;
+    max-width: none;
+    width: min(860px, calc(100% - 2 * var(--gutter)));
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-6);
+    padding: 14px 22px 14px 14px;
+    container-type: inline-size;
+  }
+  .hero__strip-lead p {
+    font-size: 0.875rem;
+  }
+  .hero__strip-list > div {
+    min-width: max-content;
+  }
+  .hero__strip-list {
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+  }
+  @container (max-width: 780px) {
+    .hero__strip-list {
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+      column-gap: var(--space-8);
+    }
+  }
+
+}
+
+/* short desktop viewports: tighten so nothing collides */
+@media (min-width: 1100px) and (max-height: 800px) {
+  .hero__copy { top: 96px; }
+  .hero__eyebrow { margin-bottom: 14px; }
+  .hero__title { font-size: clamp(3rem, 7vh + 1.4vw, 5rem); }
+  .hero__card--tl { top: 43%; }
+  .hero__card--tr { top: 41%; }
+  .hero__card--bl { top: 66%; }
+  .hero__card--br { top: 64%; }
+  .glass-card__text { font-size: 0.8125rem; }
+  /* short screens: the lower cards and the strip share the same band,
+     so the strip narrows to the lane between them */
+  .hero__strip {
+    width: min(820px, calc(100% - 2 * (var(--card-edge) + var(--card-w) + 18px)));
+  }
+  .glass-card { row-gap: 12px; padding: 14px; }
+  .glass-card__icon { width: 38px; height: 38px; }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+@media (max-width: 767px) {
+  .hero__stage {
+    padding-top: 100px;
+    gap: var(--space-6);
+  }
+  .hero__eyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+  }
+  .hero__title {
+    font-size: clamp(2.6rem, 11.5vw, 3.6rem);
+  }
+  .hero__ctas {
+    width: 100%;
+    flex-direction: column;
+  }
+  .hero__ctas > span,
+  .hero__ctas .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .hero__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero__card .glass-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    row-gap: 0;
+    padding: 14px 14px;
+  }
+  .hero__card .glass-card__icon {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .hero__card .glass-card__body {
+    grid-row: 1;
+    grid-column: 2;
+    padding-right: 44px;
+  }
+  .hero__card .glass-card__go {
+    top: 50%;
+    bottom: auto;
+    translate: 0 -50%;
+  }
+  .glass-float {
+    animation: none;
+  }
+}

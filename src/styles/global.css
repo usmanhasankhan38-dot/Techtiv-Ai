@@ -1,0 +1,132 @@
+@font-face {
+  font-family: "Clash Display";
+  src: url("../assets/fonts/techtivai-clash-display-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Clash Display";
+  src: url("../assets/fonts/techtivai-clash-display-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("../assets/fonts/techtivai-cabinet-grotesk-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("../assets/fonts/techtivai-cabinet-grotesk-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("../assets/fonts/techtivai-cabinet-grotesk-700.woff2") format("woff2");
+  font-weight: 700 800;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+html {
+  background: var(--bg-primary);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: transparent; /* page-backdrop (fixed) paints the ground */
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -60px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: var(--radius-btn);
+  background: var(--accent-lime);
+  color: var(--text-on-accent);
+  font-weight: 700;
+  transition: top var(--dur-base) var(--ease-out);
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Custom cursor: hide the system cursor only when ours is active */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* Preview-only notice for links that point to pages outside this hero build */
+.preview-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 150;
+  translate: -50% 20px;
+  opacity: 0;
+  pointer-events: none;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border-strong);
+  background: rgb(2 11 14 / 0.86);
+  backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  font-size: var(--fs-small);
+  transition: opacity var(--dur-base) var(--ease-out), translate var(--dur-base) var(--ease-out);
+}
+.preview-toast.is-on {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
