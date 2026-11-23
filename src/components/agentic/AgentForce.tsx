@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import gsap from 'gsap'
 import Reactor from './reactor/Reactor'
 import AgentIcon from './agentforce/AgentIcons'
@@ -47,7 +47,7 @@ function reduce(m: M, a: A): M {
 
 type Path = { d: string; ok: boolean }
 
-export default function AgentForce({ live }: { live: boolean }) {
+function AgentForce({ live }: { live: boolean }) {
   const stage = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [m, dispatch] = useReducer(reduce, { mode: 'auto', stage: 'idle', agent: -1, step: 0, run: 0 })
@@ -79,7 +79,8 @@ export default function AgentForce({ live }: { live: boolean }) {
   }, [])
   useEffect(() => {
     if (!inView || drawn) return
-    const id = window.setTimeout(() => setDrawn(true), 450)
+    // connections draw out of the reactor as the consoles land (Chapter 01)
+    const id = window.setTimeout(() => setDrawn(true), 900)
     return () => window.clearTimeout(id)
   }, [inView, drawn])
 
@@ -245,6 +246,7 @@ export default function AgentForce({ live }: { live: boolean }) {
         key={mod.id}
         type="button"
         data-mod={mod.id}
+        data-cursor="surface"
         className={`afc afc--${mod.id} afc--${mod.side} is-${ph} ${isActive ? 'is-current' : ''} ${dim ? 'is-dim' : ''} ${shown === i ? 'is-shown' : ''}`}
         aria-pressed={m.mode === 'manual' && m.agent === i}
         aria-label={`${mod.name}: ${mod.desc}. Run the demo task.`}
@@ -409,14 +411,14 @@ export default function AgentForce({ live }: { live: boolean }) {
               {active && m.stage === 'complete' ? active.result : ''}
             </p>
             <div className="af-ctl__btns">
-              <button type="button" className="af-btn" onClick={() => (m.mode === 'manual' && m.agent >= 0 ? select(m.agent) : dispatch({ t: 'resume' }))}>
+              <button type="button" className="af-btn" data-magnetic onClick={() => (m.mode === 'manual' && m.agent >= 0 ? select(m.agent) : dispatch({ t: 'resume' }))}>
                 <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                   <path d="M5 12a7 7 0 1 0 2.1-5M5 4.5V8h3.5" />
                 </svg>
                 Replay demo
               </button>
               {m.mode === 'manual' && live && (
-                <button type="button" className="af-btn af-btn--primary" onClick={() => dispatch({ t: 'resume' })}>
+                <button type="button" className="af-btn af-btn--primary" data-magnetic onClick={() => dispatch({ t: 'resume' })}>
                   <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                     <path d="M8 5.5v13l10-6.5Z" />
                   </svg>
@@ -431,3 +433,6 @@ export default function AgentForce({ live }: { live: boolean }) {
     </div>
   )
 }
+
+/* memoised: the section re-rendering never re-renders the network */
+export default memo(AgentForce)

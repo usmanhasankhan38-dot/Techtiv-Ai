@@ -42,6 +42,12 @@
   border-color: rgb(61 232 255 / 0.65);
   background: radial-gradient(circle, rgb(61 232 255 / 0.08), transparent 70%);
 }
+.cursor-ring.is-reactor {
+  width: 46px;
+  height: 46px;
+  border-color: rgb(61 232 255 / 0.6);
+  background: radial-gradient(circle, rgb(61 232 255 / 0.1), transparent 70%);
+}
 .cursor-ring.is-down {
   width: 26px;
   height: 26px;

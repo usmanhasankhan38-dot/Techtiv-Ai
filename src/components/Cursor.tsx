@@ -31,9 +31,13 @@ export default function Cursor() {
       const m = t.closest<HTMLElement>('[data-magnetic]')
       if (m !== magnet) releaseMagnet()
       magnet = m
-      const interactive = !!t.closest('a, button, [role="button"]')
-      ring.current?.classList.toggle('is-link', interactive)
-      ring.current?.classList.toggle('is-card', !!t.closest('.glass-card'))
+      // large clickable surfaces (agent consoles, bento cards) get the quiet
+      // card ring; real controls inside them still get the link ring
+      const ctl = t.closest<HTMLElement>('a, button, [role="button"]')
+      const surface = !!ctl && ctl.dataset.cursor === 'surface'
+      ring.current?.classList.toggle('is-link', !!ctl && !surface)
+      ring.current?.classList.toggle('is-card', surface || !!t.closest('.glass-card'))
+      ring.current?.classList.toggle('is-reactor', !ctl && !!t.closest('[data-cursor="reactor"]'))
     }
     const onDown = () => ring.current?.classList.add('is-down')
     const onUp = () => ring.current?.classList.remove('is-down')

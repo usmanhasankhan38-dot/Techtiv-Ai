@@ -45,6 +45,7 @@ export default function Reactor({ focus, live, pulseKey = 0, className = '' }: {
       ref={wrap}
       className={`core reactor ${webgl ? '' : 'core--fallback'} ${className}`}
       aria-hidden="true"
+      data-cursor="reactor"
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       onPointerDown={() => live && (s.current.pulse = 1)}

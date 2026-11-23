@@ -5,16 +5,83 @@
    Motion is CSS transitions keyed to step classes, so replay, variant
    switches and resets always interpolate instead of jumping.
    ========================================================================== */
+.ag-bento {
+  position: relative;
+}
+/* Chapter 02 → 03 bridge: one hairline of signal drops from the network
+   to the agents, under a soft light that hands over from the reactor */
+.ag-bento__light {
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  width: min(1100px, 100%);
+  height: 620px;
+  translate: -50% 0;
+  z-index: -1;
+  background:
+    radial-gradient(40% 34% at 50% 18%, rgb(198 255 0 / 0.06), transparent 70%),
+    radial-gradient(60% 46% at 50% 30%, rgb(61 232 255 / 0.05), transparent 72%);
+  pointer-events: none;
+}
+.ag-bridge {
+  display: flex;
+  justify-content: center;
+  height: clamp(64px, 9vh, 110px);
+  margin-top: clamp(28px, 4vh, 44px);
+}
+.ag-bridge__line {
+  position: relative;
+  width: 1px;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, transparent, rgb(198 255 0 / 0.35) 40%, rgb(61 232 255 / 0.3));
+}
+.ag-bridge__line::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -30%;
+  width: 3px;
+  height: 30%;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, var(--accent-lime));
+  box-shadow: 0 0 8px rgb(198 255 0 / 0.8);
+  animation: ag-drop 2.8s var(--ease-in-out) infinite;
+}
+@keyframes ag-drop {
+  to {
+    top: 100%;
+  }
+}
 .ag__sub {
   max-width: var(--content-max);
-  margin: clamp(88px, 12vh, 140px) auto 22px;
+  margin: 14px auto 28px;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.ag-bridge__k {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-lime);
+}
+.ag-bridge__n {
+  margin: 0;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(232 255 245 / 0.12);
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
 }
 .ag-grid {
-  --bx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bx-ease: var(--ease-out); /* one easing family across all three stages */
   max-width: var(--content-max);
   margin: 0 auto;
   display: grid;
@@ -109,6 +176,9 @@
     inset 0 1px 0 rgb(232 255 245 / 0.12),
     inset 0 0 0 1px rgb(198 255 0 / 0.42),
     0 30px 90px -44px rgb(198 255 0 / 0.32);
+}
+.agb[data-enter] {
+  transition: none;
 }
 .ag-grid.has-selection .agb:not(.is-selected) {
   opacity: 0.62;
@@ -1536,13 +1606,20 @@
   .ag-grid.has-selection .agb:not(.is-selected) {
     opacity: 1;
   }
+  /* phones: the demo bar wraps taller than the description, so don't reserve
+     its height on every card — the opened card grows instead */
+  .agb:not(.is-selected) .agb__demo,
+  .agb.is-selected .agb__rest {
+    display: none;
+  }
 }
 
 /* ==========================================================================
    Rest states
    ========================================================================== */
 .ag-grid.is-out *,
-.ag.is-offscreen .ag-grid * {
+.ag.is-offscreen .ag-grid *,
+.ag.is-offscreen .ag-bridge__line::after {
   animation-play-state: paused !important;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1558,7 +1635,8 @@
   }
   .sdr-sig,
   .wr-scan,
-  .lg-scan {
+  .lg-scan,
+  .ag-bridge__line::after {
     display: none;
   }
 }
