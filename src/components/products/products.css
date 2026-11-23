@@ -1687,6 +1687,9 @@
   }
 }
 @media (max-width: 420px) {
+  .pd-card--web {
+    --ui-h: 574px;
+  }
   .pw__res li {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 34px;
