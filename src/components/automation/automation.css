@@ -1,0 +1,1366 @@
+/* ==========================================================================
+   AI Automation — "The automation engine"
+   Graphic language (distinct from AgentForce's orbits and curves):
+   architectural grid, squared nodes, orthogonal routes with rounded elbows,
+   registration marks, ports. Brand tokens only; lime = live signal,
+   cyan = structure / complete.
+   ========================================================================== */
+.ax {
+  --ax-ease: var(--ease-out);
+  position: relative;
+  z-index: 1;
+  padding: clamp(96px, 14vh, 160px) var(--gutter);
+  isolation: isolate;
+}
+.ax__grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(46% 38% at 52% 58%, rgb(61 232 255 / 0.06), transparent 70%),
+    radial-gradient(30% 26% at 30% 60%, rgb(198 255 0 / 0.04), transparent 70%),
+    linear-gradient(rgb(232 255 245 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, rgb(232 255 245 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px;
+  -webkit-mask-image: radial-gradient(60% 55% at 50% 55%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(60% 55% at 50% 55%, #000 20%, transparent 78%);
+  pointer-events: none;
+}
+.ax__inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* ---------- head (editorial, left aligned like the live section) ---------- */
+.ax__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+}
+.ax__copy {
+  max-width: 760px;
+}
+.ax__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--space-6);
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hero-eyebrow-border);
+  background: var(--hero-eyebrow-bg);
+  color: var(--accent-lime);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+}
+.ax__eyebrow > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 1.5px;
+  background: var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+}
+.ax__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.3rem, 1.1rem + 3vw, 4.25rem);
+  line-height: 1;
+  letter-spacing: -0.032em;
+}
+.ax__line {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.06em 0.1em 0;
+  margin-bottom: -0.1em;
+}
+.ax__line > span {
+  display: inline-block;
+  transform-origin: 0% 100%;
+}
+.ax__line--accent > span {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ax__desc {
+  margin: var(--space-6) 0 0;
+  max-width: 36em;
+  font-size: var(--fs-body);
+  color: var(--text-body);
+}
+.ax__index {
+  flex: none;
+  padding-bottom: 6px;
+}
+.ax__index-k {
+  margin: 0 0 12px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-lime);
+}
+.ax__index ol {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ax__index li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgb(232 255 245 / 0.1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  transition: color 400ms var(--ax-ease), border-color 400ms var(--ax-ease), background 400ms var(--ax-ease);
+}
+.ax__index li b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+.ax__index li + li::before {
+  content: '';
+  width: 0;
+}
+.ax__index li.is-on {
+  color: var(--text-primary);
+  border-color: rgb(198 255 0 / 0.4);
+  background: rgb(198 255 0 / 0.06);
+}
+.ax__index li.is-on b {
+  color: var(--accent-lime);
+}
+
+/* ==========================================================================
+   Stage: panel · link · panel · link · panel / strip
+   ========================================================================== */
+.ax-stage {
+  --port-y: 200px;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1.2fr) 40px minmax(0, 1fr);
+  grid-template-areas:
+    'p1 la p2 lb p3'
+    'st st st st st';
+  row-gap: 16px;
+  margin-top: clamp(48px, 7vh, 72px);
+}
+.ax-panel--trigger { grid-area: p1; }
+.ax-link--a { grid-area: la; }
+.ax-panel--net { grid-area: p2; }
+.ax-link--b { grid-area: lb; }
+.ax-panel--exec { grid-area: p3; }
+.ax-strip { grid-area: st; }
+
+/* ---------- panel material ---------- */
+.ax-panel {
+  --mx: 50%;
+  --my: 0%;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 500px;
+  padding: 22px 22px 22px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(70% 40% at 50% 0%, rgb(232 255 245 / 0.035), transparent 70%),
+    linear-gradient(180deg, rgb(10 22 16 / 0.92), rgb(4 11 8 / 0.94));
+  box-shadow:
+    inset 0 1px 0 rgb(232 255 245 / 0.09),
+    inset 0 0 0 1px rgb(232 255 245 / 0.075),
+    0 40px 80px -50px rgb(0 0 0 / 0.95);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+.ax-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx) var(--my), rgb(198 255 0 / 0.45), rgb(61 232 255 / 0.14) 42%, transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ax-ease);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .ax-panel:hover::after {
+    opacity: 1;
+  }
+}
+/* registration marks: the panel reads as an engineered plate */
+.ax-panel__reg {
+  position: absolute;
+  inset: 10px;
+  z-index: -1;
+  pointer-events: none;
+  --c: rgb(232 255 245 / 0.2);
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 10px 1px,
+    linear-gradient(var(--c), var(--c)) 0 0 / 1px 10px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 10px 1px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 1px 10px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 10px 1px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 1px 10px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 10px 1px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 1px 10px;
+  background-repeat: no-repeat;
+}
+.ax-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ax-panel__head > div {
+  flex: 1;
+  min-width: 0;
+}
+.ax-panel__n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid rgb(198 255 0 / 0.35);
+  background: rgb(198 255 0 / 0.06);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-lime);
+}
+.ax-panel__head h3 {
+  margin: 1px 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+.ax-panel__head p:not(.ax-panel__n) {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+}
+
+/* ---------- ports + links: the visible data path between stages ---------- */
+.ax-port {
+  position: absolute;
+  top: var(--port-y);
+  width: 12px;
+  height: 12px;
+  translate: 0 -50%;
+  border-radius: 3px;
+  background: #06100b;
+  box-shadow: inset 0 0 0 1px rgb(61 232 255 / 0.55);
+  z-index: 2;
+}
+.ax-port i {
+  position: absolute;
+  inset: 3px;
+  border-radius: 1.5px;
+  background: var(--accent-cyan);
+  opacity: 0.5;
+  transition: opacity 300ms var(--ax-ease), background 300ms var(--ax-ease);
+}
+.ax-port--out {
+  right: -6px;
+}
+.ax-port--in {
+  left: -6px;
+}
+.ax-link {
+  position: relative;
+  pointer-events: none;
+}
+.ax-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--port-y);
+  height: 1px;
+  background: linear-gradient(90deg, rgb(61 232 255 / 0.5), rgb(198 255 0 / 0.5));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 900ms var(--ax-ease);
+}
+.ax.is-drawn .ax-link::before {
+  transform: scaleX(1);
+}
+.ax-link i {
+  position: absolute;
+  top: var(--port-y);
+  left: 0;
+  width: 10px;
+  height: 3px;
+  translate: 0 -50%;
+  border-radius: 2px;
+  background: var(--accent-lime);
+  box-shadow: 0 0 8px rgb(198 255 0 / 0.9);
+  opacity: 0;
+}
+.ax.is-drawn .ax-link i {
+  animation: ax-hop 2.4s var(--ease-in-out) infinite;
+}
+.ax.is-drawn .ax-link--b i {
+  animation-delay: 1.2s;
+}
+@keyframes ax-hop {
+  0% { left: 0; opacity: 0; }
+  15% { opacity: 0.6; }
+  85% { opacity: 0.6; }
+  100% { left: calc(100% - 10px); opacity: 0; }
+}
+/* during a run: the link carries the real hand-off, bright and once */
+.ax.is-running.at-1 .ax-link--a i,
+.ax.is-running.at-3 .ax-link--b i {
+  animation: ax-hop-hot 0.8s var(--ease-in-out) forwards;
+}
+@keyframes ax-hop-hot {
+  0% { left: 0; opacity: 1; width: 16px; }
+  100% { left: calc(100% - 16px); opacity: 1; width: 16px; }
+}
+.ax.is-running.at-1 .ax-panel--trigger .ax-port i,
+.ax.is-running .ax-panel--net .ax-net__port,
+.ax.is-running.at-3 .ax-panel--exec .ax-port i,
+.ax.is-completed .ax-port i {
+  opacity: 1;
+  background: var(--accent-lime);
+}
+
+/* ==========================================================================
+   01 · Trigger engine
+   ========================================================================== */
+.ax-trig {
+  display: grid;
+  gap: 8px;
+}
+.ax-trig__opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 9px 14px 9px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: rgb(232 255 245 / 0.03);
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.08);
+  color: var(--text-body);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 260ms var(--ax-ease), box-shadow 260ms var(--ax-ease), color 260ms var(--ax-ease);
+}
+.ax-trig__opt:hover {
+  background: rgb(232 255 245 / 0.055);
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.16);
+}
+.ax-trig__opt.is-on {
+  background: linear-gradient(90deg, rgb(198 255 0 / 0.09), rgb(198 255 0 / 0.02));
+  box-shadow: inset 0 0 0 1px rgb(198 255 0 / 0.45);
+  color: var(--text-primary);
+}
+.ax-trig__opt:focus-visible,
+.ax-node:focus-visible,
+.ax-ghost:focus-visible,
+.ax-run:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ax-trig__ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgb(232 255 245 / 0.04);
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.1);
+  color: var(--text-soft);
+  transition: color 260ms var(--ax-ease), background 260ms var(--ax-ease), box-shadow 260ms var(--ax-ease);
+}
+.ax-trig__opt.is-on .ax-trig__ic {
+  color: var(--accent-lime);
+  background: rgb(198 255 0 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(198 255 0 / 0.35);
+}
+.ax-trig__t {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.ax-trig__t b {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.ax-trig__t small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.ax-trig__led {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.25);
+  transition: background 260ms var(--ax-ease), box-shadow 260ms var(--ax-ease);
+}
+.ax-trig__opt.is-on .ax-trig__led {
+  background: var(--accent-lime);
+  box-shadow: 0 0 8px rgb(198 255 0 / 0.8);
+}
+/* event preview: rebuilt on each selection (keyed) so it types itself in */
+.ax-event {
+  position: relative;
+  margin-top: auto;
+  padding: 14px 16px 12px;
+  border-radius: 12px;
+  background: rgb(2 9 6 / 0.7);
+  box-shadow: inset 0 0 0 1px rgb(61 232 255 / 0.18);
+  overflow: hidden;
+}
+.ax-event::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgb(198 255 0 / 0.12), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.ax-panel--trigger.is-firing .ax-event::after {
+  animation: ax-flash 0.9s var(--ax-ease);
+}
+@keyframes ax-flash {
+  0% { opacity: 0; transform: translateY(-100%); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(220%); }
+}
+.ax-event__k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+.ax-event__k em {
+  margin-left: auto;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.ax-event__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: ax-blink 1.6s var(--ease-in-out) infinite;
+}
+.ax-panel--trigger.is-firing .ax-event__dot {
+  background: var(--accent-lime);
+  animation-duration: 0.3s;
+}
+@keyframes ax-blink {
+  50% { opacity: 0.3; }
+}
+.ax-event__name {
+  margin: 8px 0 8px;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: ax-in 420ms var(--ax-ease) both;
+}
+.ax-event dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+.ax-event dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 5px;
+  border-top: 1px dashed rgb(232 255 245 / 0.08);
+  font-size: 0.8125rem;
+  animation: ax-in 420ms var(--ax-ease) both;
+  animation-delay: calc(120ms + var(--i) * 90ms);
+}
+.ax-event dt {
+  color: var(--text-muted);
+}
+.ax-event dd {
+  margin: 0;
+  color: var(--text-body);
+  text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes ax-in {
+  from { opacity: 0; transform: translateX(-6px); }
+}
+
+/* ==========================================================================
+   02 · Integration network
+   ========================================================================== */
+.ax-net {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ax-net__cols {
+  position: relative;
+  height: 16px;
+  margin: 0 18px;
+}
+.ax-net__cols span {
+  position: absolute;
+  translate: -50% 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ax-net__map {
+  position: relative;
+  aspect-ratio: 360 / 280;
+  margin: 6px 18px 0;
+  container-type: inline-size;
+}
+.ax-net__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ax-net__in {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+}
+.ax-net__port {
+  fill: #06100b;
+  stroke: rgb(61 232 255 / 0.6);
+  transition: fill 300ms var(--ax-ease);
+}
+.ax.is-running .ax-net__port {
+  fill: var(--accent-lime);
+  stroke: var(--accent-lime);
+}
+.ax-r {
+  fill: none;
+  stroke: rgb(232 255 245 / 0.12);
+  stroke-width: 1.2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke 400ms var(--ax-ease), stroke-width 400ms var(--ax-ease), stroke-dashoffset 1100ms var(--ax-ease), opacity 400ms var(--ax-ease);
+}
+.ax.is-drawn .ax-r {
+  stroke-dashoffset: 0;
+}
+.ax-r.is-off,
+.ax-r--in:not(.is-on) {
+  stroke: rgb(232 255 245 / 0.1);
+  opacity: 0.7;
+}
+.ax-r.is-on {
+  stroke: url(#ax-route);
+  stroke-width: 1.6;
+  opacity: 0.55;
+}
+.ax.is-running .ax-r.is-on,
+.ax.is-completed .ax-r.is-on {
+  opacity: 1;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 3px rgb(198 255 0 / 0.45));
+}
+.ax-trickle {
+  fill: var(--accent-cyan);
+  opacity: 0.55;
+}
+.ax.is-running .ax-trickle {
+  opacity: 0;
+}
+.ax-packet {
+  fill: #f4ffd0;
+  filter: drop-shadow(0 0 5px rgb(198 255 0 / 0.95));
+}
+/* nodes: real buttons positioned in the same coordinate space as the SVG */
+.ax-node {
+  position: absolute;
+  width: calc(52 / 360 * 100%);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgb(20 36 28 / 0.95), rgb(6 14 10 / 0.98));
+  box-shadow: inset 0 1px 0 rgb(232 255 245 / 0.1), inset 0 0 0 1px rgb(232 255 245 / 0.12), 0 10px 24px -12px rgb(0 0 0 / 0.9);
+  color: rgb(232 255 245 / 0.55);
+  cursor: pointer;
+  transition: color 300ms var(--ax-ease), box-shadow 300ms var(--ax-ease), background 300ms var(--ax-ease), scale 300ms var(--ax-ease);
+}
+.ax-node:hover {
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgb(232 255 245 / 0.14), inset 0 0 0 1px rgb(232 255 245 / 0.28), 0 10px 24px -12px rgb(0 0 0 / 0.9);
+}
+.ax-node.is-on {
+  color: var(--text-primary);
+  background: linear-gradient(160deg, rgb(30 48 20 / 0.95), rgb(8 18 10 / 0.98));
+  box-shadow: inset 0 1px 0 rgb(232 255 245 / 0.14), inset 0 0 0 1px rgb(198 255 0 / 0.55), 0 0 0 4px rgb(198 255 0 / 0.06), 0 12px 28px -12px rgb(198 255 0 / 0.35);
+}
+.ax-node.is-busy {
+  scale: 1.06;
+  box-shadow: inset 0 0 0 1.5px var(--accent-lime), 0 0 0 6px rgb(198 255 0 / 0.1), 0 0 24px rgb(198 255 0 / 0.35);
+}
+.ax-node .ax-mark {
+  width: 44%;
+  height: 44%;
+}
+.ax-node__t {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+.ax-node__t em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ax-node.is-on .ax-node__t {
+  color: var(--text-primary);
+}
+.ax-node__chk {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 5px;
+  background: #06100b;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.25);
+  transition: background 250ms var(--ax-ease), box-shadow 250ms var(--ax-ease);
+}
+.ax-node__chk::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2.5px;
+  width: 4px;
+  height: 7px;
+  border: solid #030d06;
+  border-width: 0 1.6px 1.6px 0;
+  rotate: 45deg;
+  opacity: 0;
+}
+.ax-node.is-on .ax-node__chk {
+  background: var(--accent-lime);
+  box-shadow: none;
+}
+.ax-node.is-on .ax-node__chk::after {
+  opacity: 1;
+}
+.ax-mark {
+  display: block;
+  flex: none;
+}
+.ax-mark--ghl {
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.ax-node .ax-mark--ghl {
+  font-size: 0.8125rem !important;
+}
+/* idle life: the selected platform breathes, very quietly */
+.ax.is-drawn:not(.is-running) .ax-net__group[role='radiogroup'] .ax-node.is-on {
+  animation: ax-breathe 3.6s var(--ease-in-out) infinite;
+}
+@keyframes ax-breathe {
+  50% { box-shadow: inset 0 1px 0 rgb(232 255 245 / 0.14), inset 0 0 0 1px rgb(198 255 0 / 0.75), 0 0 0 6px rgb(198 255 0 / 0.08), 0 12px 28px -12px rgb(198 255 0 / 0.45); }
+}
+.ax-net__path {
+  margin: auto 0 0;
+  padding-top: 34px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.ax-net__path span {
+  color: var(--text-body);
+  font-weight: 600;
+}
+/* while running, selection is locked — make that legible */
+.ax.is-running [aria-disabled='true']:not(.ax-run) {
+  cursor: not-allowed;
+}
+.ax.is-running .ax-node:not(.is-on),
+.ax.is-running .ax-trig__opt:not(.is-on) {
+  opacity: 0.45;
+}
+
+/* ==========================================================================
+   03 · Execution console
+   ========================================================================== */
+.ax-ring {
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+.ax-ring__track {
+  fill: none;
+  stroke: rgb(232 255 245 / 0.1);
+  stroke-width: 2.5;
+}
+.ax-ring__val {
+  fill: none;
+  stroke: var(--accent-lime);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  transform: rotate(-90deg);
+  transform-origin: 18px 18px;
+  transition: stroke-dashoffset 600ms var(--ax-ease), stroke 400ms var(--ax-ease);
+}
+.ax-panel--exec.is-complete .ax-ring__val {
+  stroke: var(--accent-cyan);
+}
+.ax-ring text {
+  fill: var(--text-body);
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 600;
+}
+.ax-tasks {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* the spine */
+.ax-tasks::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: linear-gradient(180deg, rgb(61 232 255 / 0.4), rgb(232 255 245 / 0.08));
+}
+.ax-task {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 7px 12px 7px 8px;
+  border-radius: 11px;
+  overflow: hidden;
+  transition: background 300ms var(--ax-ease), box-shadow 300ms var(--ax-ease);
+}
+.ax-task__node {
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: 0;
+  border-radius: 5px;
+  background: #06100b;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.22);
+  transition: background 300ms var(--ax-ease), box-shadow 300ms var(--ax-ease);
+}
+.ax-task__node::after {
+  content: '';
+  position: absolute;
+  left: 5.5px;
+  top: 3px;
+  width: 3.5px;
+  height: 6.5px;
+  border: solid #030d06;
+  border-width: 0 1.6px 1.6px 0;
+  rotate: 45deg;
+  opacity: 0;
+  transition: opacity 250ms var(--ax-ease);
+}
+.ax-task__t {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.ax-task__t b {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 300ms var(--ax-ease);
+}
+.ax-task__t small {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ax-task__by {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.1);
+  color: var(--text-soft);
+}
+.ax-task__by svg:not(.ax-mark) {
+  width: 15px;
+  height: 15px;
+}
+.ax-task__by .ax-mark--ghl {
+  font-size: 0.625rem !important;
+}
+.ax-task__bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-lime));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  opacity: 0;
+}
+.ax-task.is-run {
+  background: rgb(198 255 0 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(198 255 0 / 0.3);
+}
+.ax-task.is-run .ax-task__node {
+  background: rgb(198 255 0 / 0.2);
+  box-shadow: inset 0 0 0 1.5px var(--accent-lime), 0 0 10px rgb(198 255 0 / 0.5);
+}
+.ax-task.is-run .ax-task__t b {
+  color: var(--text-primary);
+}
+.ax-task.is-run .ax-task__t small {
+  color: var(--accent-lime);
+}
+.ax-task.is-run .ax-task__bar {
+  opacity: 1;
+  animation: ax-bar linear forwards;
+}
+.ax-task--trigger.is-run .ax-task__bar {
+  animation-duration: 900ms !important;
+}
+@keyframes ax-bar {
+  to { transform: scaleX(1); }
+}
+.ax-task.is-done .ax-task__node {
+  background: var(--accent-cyan);
+  box-shadow: none;
+}
+.ax-task.is-done .ax-task__node::after {
+  opacity: 1;
+}
+.ax-task.is-done .ax-task__t b {
+  color: var(--text-primary);
+}
+.ax-task.is-done .ax-task__t small {
+  color: var(--accent-cyan);
+}
+.ax-task.is-done .ax-task__by {
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px rgb(61 232 255 / 0.3);
+}
+.ax-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgb(61 232 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(61 232 255 / 0.3);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 500ms var(--ax-ease), transform 600ms var(--ax-ease);
+}
+.ax-panel--exec.is-complete .ax-result {
+  opacity: 1;
+  transform: none;
+}
+.ax-result__ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-cyan);
+}
+.ax-result__ic path {
+  fill: none;
+  stroke: #030d06;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ax-result p {
+  display: grid;
+  margin: 0;
+}
+.ax-result b {
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+.ax-result small {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+/* ==========================================================================
+   Control / status strip
+   ========================================================================== */
+.ax-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 24px;
+  margin-top: 8px;
+  padding: 14px 16px 10px 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgb(10 22 16 / 0.9), rgb(4 11 8 / 0.92));
+  box-shadow: inset 0 1px 0 rgb(232 255 245 / 0.08), inset 0 0 0 1px rgb(232 255 245 / 0.07);
+}
+.ax-strip__cfg {
+  display: flex;
+  gap: 22px;
+  margin: 0;
+}
+.ax-strip__cfg > div {
+  display: grid;
+  gap: 3px;
+}
+.ax-strip__cfg dt {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ax-strip__cfg dd {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.ax-strip__cfg dd svg {
+  width: 15px;
+  height: 15px;
+  color: var(--accent-lime);
+}
+.ax-strip__cfg dd .ax-mark {
+  color: var(--text-primary);
+}
+.ax-strip__cfg dd .ax-mark--ghl {
+  font-size: 0.625rem !important;
+  padding: 2px 4px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.3);
+}
+.ax-strip__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding-left: 22px;
+  border-left: 1px solid rgb(232 255 245 / 0.08);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-height: 40px;
+}
+.ax-strip__led {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent-cyan);
+}
+.ax.is-running .ax-strip__led {
+  background: var(--accent-lime);
+  box-shadow: 0 0 8px var(--accent-lime);
+  animation: ax-blink 0.8s var(--ease-in-out) infinite;
+}
+.ax.is-running .ax-strip__status {
+  color: var(--accent-lime);
+}
+.ax.is-completed .ax-strip__status {
+  color: var(--accent-cyan);
+}
+.ax-strip__note {
+  font-style: normal;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.ax-strip__btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ax-run {
+  min-width: 140px;
+  justify-content: center;
+  gap: 8px;
+}
+.ax-run[aria-disabled='true'] {
+  cursor: progress;
+  opacity: 0.85;
+}
+.ax-run__spin {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1.6px solid currentColor;
+  border-right-color: transparent;
+  animation: ax-spin 0.9s linear infinite;
+}
+@keyframes ax-spin {
+  to { rotate: 360deg; }
+}
+.ax-ghost {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.16);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ax-ease), color var(--dur-fast) var(--ax-ease);
+}
+.ax-ghost:hover {
+  background: rgb(232 255 245 / 0.06);
+  color: var(--text-primary);
+}
+.ax-strip__sim {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  padding-top: 9px;
+  border-top: 1px solid rgb(232 255 245 / 0.06);
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Service categories (live content) — linked to the chosen trigger
+   ========================================================================== */
+.ax-svcs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ax-svc {
+  padding: 20px 22px;
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.07);
+  background: rgb(232 255 245 / 0.015);
+  transition: box-shadow 400ms var(--ax-ease), background 400ms var(--ax-ease);
+}
+.ax-svc.is-rel {
+  box-shadow: inset 0 0 0 1px rgb(198 255 0 / 0.3);
+  background: rgb(198 255 0 / 0.025);
+}
+.ax-svc__t {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.ax-svc__rel {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--accent-lime);
+}
+.ax-svc__d {
+  margin: 6px 0 12px;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+}
+.ax-svc__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.ax-svc__tags span {
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgb(61 232 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(61 232 255 / 0.25);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 1279px) {
+  .ax-panel {
+    padding: 20px 18px;
+  }
+  .ax-stage {
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1.15fr) 28px minmax(0, 1fr);
+  }
+  .ax-net__map,
+  .ax-net__cols {
+    margin-inline: 12px;
+  }
+}
+/* tablet & mobile: one vertical journey; Run sits right above the console */
+@media (max-width: 1099px) {
+  .ax__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .ax-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'p1' 'la' 'p2' 'lb' 'st' 'p3';
+    row-gap: 0;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  .ax-panel {
+    min-height: 0;
+  }
+  .ax-strip {
+    margin: 16px 0;
+  }
+  .ax-link {
+    height: 40px;
+  }
+  .ax-link::before {
+    left: 50%;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, rgb(61 232 255 / 0.5), rgb(198 255 0 / 0.5));
+    transform: scaleY(0);
+    transform-origin: 50% 0;
+  }
+  .ax.is-drawn .ax-link::before {
+    transform: scaleY(1);
+  }
+  .ax-link i {
+    left: 50%;
+    top: 0;
+    width: 3px;
+    height: 10px;
+    translate: -50% 0;
+  }
+  @keyframes ax-hop {
+    0% { top: 0; opacity: 0; }
+    15% { opacity: 0.6; }
+    85% { opacity: 0.6; }
+    100% { top: calc(100% - 10px); opacity: 0; }
+  }
+  @keyframes ax-hop-hot {
+    0% { top: 0; opacity: 1; height: 16px; }
+    100% { top: calc(100% - 16px); opacity: 1; height: 16px; }
+  }
+  .ax-port {
+    top: auto;
+    translate: -50% 0;
+    left: 50%;
+    right: auto;
+  }
+  .ax-port--out {
+    bottom: -6px;
+  }
+  .ax-port--in {
+    top: -6px;
+  }
+  .ax-panel--trigger .ax-trig {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ax-trig__opt {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+  .ax-trig__led {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+  .ax-event {
+    margin-top: 16px;
+  }
+  .ax-net__map {
+    max-width: 440px;
+    width: calc(100% - 24px);
+    margin-inline: auto;
+  }
+  .ax-net__cols {
+    max-width: 440px;
+    width: calc(100% - 24px);
+    margin-inline: auto;
+  }
+  .ax-result {
+    margin-top: 14px;
+  }
+  .ax-strip {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ax-strip__cfg {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    gap: 12px 22px;
+  }
+  .ax-strip__status {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .ax-svcs {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 640px;
+    margin-inline: auto;
+  }
+}
+@media (max-width: 599px) {
+  .ax-panel {
+    padding: 18px 16px;
+  }
+  .ax__index ol {
+    flex-wrap: wrap;
+  }
+  .ax-panel--trigger .ax-trig {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ax-trig__opt {
+    flex-direction: row;
+    align-items: center;
+  }
+  .ax-trig__led {
+    position: static;
+  }
+  .ax-net__map,
+  .ax-net__cols {
+    width: calc(100% - 16px);
+  }
+  .ax-node__t {
+    font-size: 0.75rem;
+  }
+  .ax-node__t em {
+    display: none;
+  }
+  .ax-net__path {
+    padding-top: 30px;
+  }
+  .ax-strip {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+  .ax-strip__btns {
+    width: 100%;
+  }
+  .ax-run {
+    flex: 1;
+    min-height: 48px;
+  }
+  .ax-ghost {
+    min-height: 48px;
+  }
+}
+
+/* ==========================================================================
+   Rest states
+   ========================================================================== */
+.ax.is-offscreen *,
+.ax.is-offscreen *::before,
+.ax.is-offscreen *::after {
+  animation-play-state: paused !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ax *,
+  .ax *::before,
+  .ax *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+  .ax-link i,
+  .ax-trickle,
+  .ax-packet {
+    display: none;
+  }
+}

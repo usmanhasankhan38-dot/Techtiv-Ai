@@ -7,6 +7,7 @@ import Workflow from './components/workflow/Workflow'
 import Assessment from './components/assessment/Assessment'
 import Consultant from './components/consultant/Consultant'
 import Agentic from './components/agentic/Agentic'
+import Automation from './components/automation/Automation'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
@@ -48,6 +49,7 @@ export default function App() {
         <Assessment />
         <Consultant />
         <Agentic />
+        <Automation />
       </main>
     </>
   )
