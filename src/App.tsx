@@ -9,6 +9,7 @@ import Consultant from './components/consultant/Consultant'
 import Agentic from './components/agentic/Agentic'
 import Automation from './components/automation/Automation'
 import Products from './components/products/Products'
+import HowItWorks from './components/howitworks/HowItWorks'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
@@ -52,6 +53,7 @@ export default function App() {
         <Agentic />
         <Automation />
         <Products />
+        <HowItWorks />
       </main>
     </>
   )
