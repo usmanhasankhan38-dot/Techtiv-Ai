@@ -2,19 +2,20 @@
 .page-backdrop {
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -4; /* backdrop -4 · hero atmosphere -3 · display type -2 · core canvas -1 */
   pointer-events: none;
+  /* V2 atmosphere: one cool key from the upper right, an emerald floor bounce
+     lower left, graphite in between — a lit room, not a field of glows */
   background:
-    radial-gradient(55% 45% at 50% 72%, rgb(198 255 0 / 0.06), transparent 70%),
-    radial-gradient(40% 35% at 25% 65%, rgb(61 232 255 / 0.05), transparent 70%),
-    radial-gradient(70% 50% at 50% 0%, rgb(61 232 255 / 0.045), transparent 70%),
-    var(--bg-primary);
+    radial-gradient(110% 70% at 82% -12%, rgb(61 232 255 / 0.065), transparent 58%),
+    radial-gradient(80% 60% at 8% 108%, rgb(20 128 90 / 0.1), transparent 62%),
+    linear-gradient(180deg, #050f0a 0%, var(--bg-primary) 38%, #020806 100%);
 }
 .page-backdrop::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.06;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
