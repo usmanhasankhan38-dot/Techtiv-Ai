@@ -13,6 +13,7 @@ import HowItWorks from './components/howitworks/HowItWorks'
 import Blueprint from './components/blueprint/Blueprint'
 import Pricing from './components/pricing/Pricing'
 import FAQ from './components/faq/FAQ'
+import FinalCTA from './components/finalcta/FinalCTA'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
@@ -60,6 +61,7 @@ export default function App() {
         <Blueprint />
         <Pricing />
         <FAQ />
+        <FinalCTA />
       </main>
     </>
   )
