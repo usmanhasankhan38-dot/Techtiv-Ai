@@ -12,6 +12,7 @@ import Products from './components/products/Products'
 import HowItWorks from './components/howitworks/HowItWorks'
 import Blueprint from './components/blueprint/Blueprint'
 import Pricing from './components/pricing/Pricing'
+import FAQ from './components/faq/FAQ'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
@@ -58,6 +59,7 @@ export default function App() {
         <HowItWorks />
         <Blueprint />
         <Pricing />
+        <FAQ />
       </main>
     </>
   )
