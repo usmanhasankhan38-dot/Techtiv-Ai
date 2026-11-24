@@ -14,6 +14,7 @@ import Blueprint from './components/blueprint/Blueprint'
 import Pricing from './components/pricing/Pricing'
 import FAQ from './components/faq/FAQ'
 import FinalCTA from './components/finalcta/FinalCTA'
+import Footer from './components/footer/Footer'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
@@ -63,6 +64,7 @@ export default function App() {
         <FAQ />
         <FinalCTA />
       </main>
+      <Footer />
     </>
   )
 }
