@@ -145,7 +145,7 @@ export default function Technology({ webgl }: { webgl: boolean }) {
   const [userPaused, setUserPaused] = useState(false)
   const [hovering, setHovering] = useState(false)
   const [kbFocus, setKbFocus] = useState(false)
-  const [exploreOpen, setExploreOpen] = useState(false)
+  const [exploreOpen, setExploreOpen] = useState(true)
   const [filter, setFilter] = useState<Category | 'All'>('All')
   const [cardPos, setCardPos] = useState<{ left: number; top: number; place: 'above' | 'below' } | null>(null)
 

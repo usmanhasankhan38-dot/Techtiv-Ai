@@ -1,266 +1,250 @@
 /* ==========================================================================
-   V2 Hero — "Forged Intelligence"
-   Desktop (≥1100): 230vh track, 100svh sticky stage. Two-line display type
-   set against the grid (left / right), the core in the lower right third,
-   intro bottom-left, spec table bottom-right. On scroll the type parts, the
-   core rises into an arch and the four capabilities annotate it.
-   Tablet / mobile: one intentional column, no sticky track.
+   Hero
+   Desktop (≥1100): 180vh scroll track, 100svh sticky stage, floating cards.
+   Tablet/mobile: natural flow — copy, globe, card grid, strip.
    ========================================================================== */
 .hero {
   position: relative;
+  isolation: isolate;
 }
+
 .hero__stage {
   position: relative;
-  overflow: clip;
-}
-
-/* ---------- atmosphere: key light, light blades, architectural grid ---------- */
-.hero__atmos {
-  --lift: 0;
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -3;
-}
-.hero__key {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 120%;
-  height: 100%;
-  transform: translateX(-50%);
-  background:
-    radial-gradient(38% 42% at 52% 64%, rgb(31 140 100 / calc(0.16 + var(--lift) * 0.1)), transparent 70%),
-    radial-gradient(26% 30% at 56% 56%, rgb(61 232 255 / calc(0.05 + var(--lift) * 0.05)), transparent 70%);
-}
-/* soft vertical light blades, brightest behind the core, gone toward the edges */
-.hero__blades {
-  position: absolute;
-  inset: 0;
-  opacity: calc(0.55 + var(--lift) * 0.45);
-  background: repeating-linear-gradient(
-    90deg,
-    rgb(232 255 245 / 0) 0,
-    rgb(120 220 180 / 0.035) 2.2%,
-    rgb(232 255 245 / 0) 4.6%,
-    rgb(232 255 245 / 0) 6.4%
-  );
-  -webkit-mask: radial-gradient(48% 70% at 52% 62%, #000 0%, rgb(0 0 0 / 0.35) 55%, transparent 80%);
-  mask: radial-gradient(48% 70% at 52% 62%, #000 0%, rgb(0 0 0 / 0.35) 55%, transparent 80%);
-}
-/* the 12-column grid, drawn as faint architectural lines */
-.hero__grid {
-  position: absolute;
-  inset: 0 max(var(--v-pad), calc((100% - var(--v-container)) / 2 + var(--v-pad)));
-  background: linear-gradient(90deg, var(--v-hair) 1px, transparent 1px) 0 0 / calc((100% + var(--v-col-gap)) / 12) 100%;
-  border-right: 1px solid var(--v-hair);
-  opacity: 0.32;
-  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 22%, #000 70%, transparent 100%);
-  mask: linear-gradient(180deg, transparent 0%, #000 22%, #000 70%, transparent 100%);
-}
-
-/* ---------- core anchor ---------- */
-.hero__core {
-  position: relative;
-}
-.hero__core-anchor {
-  position: relative;
-  margin: 0 auto;
-  width: min(92vw, 520px);
-  aspect-ratio: 1;
-}
-.hero__core .core-fallback {
-  display: none;
-}
-.hero--flat .hero__core .core-fallback,
-html.core-lost .hero__core .core-fallback {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding: 104px var(--gutter) var(--space-10);
+  gap: var(--space-8);
+  overflow: hidden;
 }
 
-/* ---------- frame (mobile-first: one column) ---------- */
-.hero__frame {
+/* ---------- copy ---------- */
+.hero__copy {
+  order: 1;
   position: relative;
+  z-index: var(--z-content);
   display: flex;
   flex-direction: column;
-  padding-top: calc(var(--v-nav-h) + 28px);
-}
-.hero__meta {
-  display: grid;
-  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: var(--v-s-4);
+  text-align: center;
+  max-width: 980px;
 }
-.hero__meta-r {
-  display: none;
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--space-6);
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hero-eyebrow-border);
+  background: var(--hero-eyebrow-bg);
+  color: var(--accent-lime);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hero__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+  animation: pulse 2.4s var(--ease-in-out) infinite;
+}
+@keyframes pulse {
+  50% { box-shadow: 0 0 0 7px rgb(198 255 0 / 0), 0 0 10px var(--accent-lime); }
 }
 
-/* display type — set behind the canvas, so the core can pass in front of it */
 .hero__title {
-  position: relative;
-  z-index: -2;
-  margin-top: var(--v-s-6);
-  font-size: var(--v-fs-hero);
-  color: var(--v-ink);
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+  color: var(--text-primary);
+  text-wrap: balance;
 }
-.hero__line--b {
-  padding-left: 0.42em;
+.hero__line {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.06em 0.1em; /* room for descenders inside the mask */
+  margin-bottom: -0.1em;
 }
-.hero__stop {
-  color: var(--v-action);
+.hero__line > span {
+  display: inline-block;
+  transform-origin: 0% 100%;
+}
+.hero__line--accent > span {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-right: 0.04em;
 }
 
-.hero__core {
-  order: 3;
-  margin: var(--v-s-5) 0 0;
-}
-.hero__intro {
-  order: 4;
-  margin-top: var(--v-s-5);
-}
 .hero__sub {
-  margin: 0;
-  max-width: 38ch;
-  color: var(--v-ink-2);
-  font-size: var(--v-fs-lead);
-  line-height: 1.5;
+  margin: var(--space-6) 0 0;
+  max-width: 34em;
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--text-body);
   text-wrap: pretty;
 }
+
 .hero__ctas {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--v-s-3);
-  margin-top: var(--v-s-6);
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+.hero__ctas > span {
+  display: inline-flex;
 }
 
-/* capabilities: an indexed list on small screens, annotations on desktop */
-.hero__caps {
-  order: 5;
-  margin: var(--v-s-8) 0 0;
-  padding: 0;
+/* ---------- globe ---------- */
+.hero__globe {
+  order: 2;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: clamp(320px, 92vw, 520px);
+  margin-block: calc(var(--space-4) * -1);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.globe-anchor {
+  position: relative;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.hero__globe-anchor {
+  width: min(80%, 78% * 1);
+  max-width: 420px;
+}
+.globe-fallback {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, rgb(232 255 245 / 0.12), transparent 48%),
+    radial-gradient(circle, rgb(232 255 245 / 0.26) 0.9px, transparent 1.5px) 0 0 / 8px 8px,
+    radial-gradient(circle at 50% 50%, #06140b 58%, #030d06 100%);
+  box-shadow: 0 0 0 1px rgb(198 255 0 / 0.16), 0 0 70px rgb(198 255 0 / 0.14), 0 0 120px rgb(61 232 255 / 0.1),
+    inset -40px -50px 90px rgb(0 0 0 / 0.75);
+}
+
+/* ---------- cards ---------- */
+.hero__cards {
+  order: 3;
   list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 760px;
   display: grid;
-  gap: var(--v-s-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  position: relative;
+  z-index: var(--z-cards);
 }
-.hero__cap-link {
+.hero__card {
+  display: flex;
+}
+.hero__card .glass-float {
+  width: 100%;
+  display: flex;
+}
+
+/* ---------- bottom strip ---------- */
+.hero__strip {
+  order: 4;
+  position: relative;
+  z-index: var(--z-cards);
+  width: 100%;
+  max-width: 760px;
   display: grid;
-  gap: 8px;
-  padding: 18px 18px 20px;
-  border-radius: 16px;
-  color: var(--v-ink);
-  text-decoration: none;
-  transition: border-color var(--v-d-2) var(--v-ease-soft), transform var(--v-d-3) var(--v-ease-out);
+  gap: var(--space-4);
+  padding: 16px 18px;
 }
-.hero__cap-link:hover,
-.hero__cap-link:focus-visible {
-  border-color: rgb(198 255 0 / 0.38);
-}
-.hero__cap-top {
+.hero__strip-lead {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--v-ink-3);
-}
-.hero__cap-top .v-ico {
-  width: 18px;
-  height: 18px;
-}
-.hero__cap-idx {
-  font: 700 0.6875rem/1 var(--v-font-text);
-  letter-spacing: 0.1em;
-  color: var(--v-action);
-  font-variant-numeric: tabular-nums;
-}
-.hero__cap-arr {
-  margin-left: auto;
-  transition: transform var(--v-d-3) var(--v-ease-out), color var(--v-d-2);
-}
-.hero__cap-link:hover .hero__cap-arr {
-  color: var(--v-action);
-  transform: translate(2px, -2px);
-}
-.hero__cap-title {
-  font-family: var(--v-font-display);
-  font-weight: 600;
-  font-size: 1.1875rem;
-  letter-spacing: -0.02em;
-}
-.hero__cap-text {
-  color: var(--v-ink-3);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-.hero__cap-lead {
-  display: none;
-}
-
-/* spec table: Swiss, hairline-ruled */
-.hero__spec {
-  order: 6;
-  margin-top: var(--v-s-7);
-  padding-bottom: var(--v-s-8);
-}
-.hero__spec-lead {
-  display: flex;
   gap: 12px;
-  margin: 0 0 var(--v-s-4);
-  color: var(--v-ink-3);
+}
+.hero__strip-lead p {
+  margin: 0;
   font-size: 0.9375rem;
-  line-height: 1.45;
+  line-height: 1.4;
+  color: var(--text-soft);
 }
-.hero__spec-lead .v-ico {
-  margin-top: 1px;
-  color: var(--v-info);
-}
-.hero__spec-lead strong {
-  color: var(--v-ink);
+.hero__strip-lead strong {
+  color: var(--text-primary);
   font-weight: 700;
 }
-.hero__spec dl {
-  margin: 0;
-}
-.hero__spec-row {
-  --rule: 1;
-  position: relative;
+.hero__strip-icon {
+  flex: none;
   display: grid;
-  grid-template-columns: 7.5rem 1fr;
-  gap: var(--v-s-4);
-  padding: 11px 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--icon-wrap-bg);
+  border: 1px solid var(--icon-wrap-border);
+  color: var(--accent-lime);
 }
-.hero__spec-row::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 1px;
-  background: var(--v-hair);
-  transform: scaleX(var(--rule));
-  transform-origin: left;
-}
-.hero__spec-row dt {
-  font: 500 var(--v-fs-label) / 1.6 var(--v-font-text);
-  letter-spacing: var(--v-ls-label);
-  text-transform: uppercase;
-  color: var(--v-ink-4);
-}
-.hero__spec-row dd {
+.hero__strip-list {
   margin: 0;
-  color: var(--v-ink-2);
-  font-size: 0.875rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+.hero__strip-list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hero__strip-list dt {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
+}
+.hero__strip-list dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+  white-space: nowrap;
 }
 
 
-/* ---------- tablet ---------- */
-@media (min-width: 640px) and (max-width: 1099px) {
-  .hero__caps {
-    grid-template-columns: 1fr 1fr;
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .hero__stage {
+    padding-top: 128px;
   }
-  .hero__core-anchor {
-    width: min(70vw, 560px);
+  .hero__globe {
+    height: clamp(440px, 64vw, 600px);
   }
-  .hero__intro,
-  .hero__spec {
-    max-width: 620px;
+  .hero__globe-anchor {
+    max-width: 470px;
+  }
+  .hero__strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero__strip-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -269,7 +253,7 @@ html.core-lost .hero__core .core-fallback {
    ========================================================================== */
 @media (min-width: 1100px) {
   .hero {
-    height: 230vh;
+    height: 160vh;
   }
   .hero__stage {
     position: sticky;
@@ -277,150 +261,174 @@ html.core-lost .hero__core .core-fallback {
     height: 100vh;
     height: 100svh;
     min-height: 720px;
-  }
-  .hero__core {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-  }
-  .hero__core-anchor {
-    position: absolute;
-    left: 51.5%;
-    top: 66%;
-    width: min(60vh, 38vw);
-    transform: translate(-50%, -50%);
-  }
-  .hero__frame {
-    height: 100%;
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto auto 1fr auto;
-    column-gap: var(--v-col-gap);
-    padding-top: calc(var(--v-nav-h) + 26px);
-    padding-bottom: clamp(28px, 5vh, 52px);
-  }
-  .hero__meta {
-    grid-column: 1 / -1;
-    grid-template-columns: auto 1fr auto;
-    gap: var(--v-s-5);
-  }
-  .hero__meta-r {
-    display: inline-flex;
-  }
-  .hero__title {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    margin-top: clamp(20px, 5.5vh, 64px);
-  }
-  .hero__line--a {
-    width: fit-content;
-  }
-  .hero__line--b {
-    width: fit-content;
-    margin-left: auto;
-    padding-left: 0;
-    margin-right: -0.04em;
-  }
-  .hero__intro {
-    grid-column: 1 / span 4;
-    grid-row: 4;
-    align-self: end;
-    margin: 0;
-  }
-  .hero__spec {
-    grid-column: 10 / -1;
-    grid-row: 4;
-    align-self: end;
-    margin: 0;
+    display: block;
     padding: 0;
   }
-
-  /* capabilities become annotations around the arch (shown on scroll) */
-  .hero__caps {
+  .hero__globe {
     position: absolute;
-    inset: calc(var(--v-nav-h) + 80px) var(--v-pad) 12vh;
+    inset: 0;
+    height: auto;
     margin: 0;
+    display: block;
+  }
+  .hero__globe-anchor {
+    position: absolute;
+    left: 50%;
+    top: 80%;
+    width: min(46vh, 34vw);
+    max-width: none;
+    translate: -50% -50%;
+  }
+  .hero__copy {
+    position: absolute;
+    left: 50%;
+    top: clamp(104px, 15vh, 150px);
+    translate: -50% 0;
+    width: min(980px, 90vw);
+  }
+  .hero__title {
+    font-size: clamp(3.5rem, 6.4vh + 2.2vw, 6.25rem);
+  }
+  .hero__sub {
+    margin-top: clamp(16px, 2.4vh, 28px);
+  }
+  .hero__ctas {
+    margin-top: clamp(20px, 3.4vh, 36px);
+  }
+
+  .hero__cards {
+    position: absolute;
+    inset: 0;
+    max-width: none;
     display: block;
     pointer-events: none;
   }
-  .hero__cap {
+  .hero__card {
     position: absolute;
-    width: clamp(230px, 18vw, 290px);
-    opacity: 0; /* revealed by scroll; still in the tab order */
+    width: var(--card-w);
     pointer-events: auto;
   }
-  .hero__cap:focus-within {
-    opacity: 1 !important;
-    transform: none !important;
+  .hero__card .glass-card {
+    row-gap: 14px;
+    padding: 16px;
   }
-  .hero__cap--1 { left: 0; top: 6%; }
-  .hero__cap--2 { left: 2.5%; top: 46%; }
-  .hero__cap--3 { right: 0; top: 6%; }
-  .hero__cap--4 { right: 2.5%; top: 46%; }
-  .hero__cap-lead {
-    display: block;
+  .hero__card .glass-card__icon {
+    width: 40px;
+    height: 40px;
+  }
+  /* two cards per side, stepped like the reference; the lower pair sits at the
+     outer edge so the info strip has a clear lane between them */
+  .hero__stage {
+    --card-edge: max(var(--gutter), calc(50% - 610px));
+    --card-w: clamp(226px, 16.5vw, 256px);
+  }
+  .hero__card--tl { left: calc(var(--card-edge) + 36px); top: 43%; }
+  .hero__card--bl { left: var(--card-edge); top: 64%; }
+  .hero__card--tr { right: calc(var(--card-edge) + 28px); top: 41%; }
+  .hero__card--br { right: var(--card-edge); top: 62%; }
+
+  .hero__strip {
     position: absolute;
-    top: 38px;
-    width: clamp(40px, 6vw, 110px);
-    height: 1px;
-    background: linear-gradient(90deg, var(--v-hair-strong), rgb(198 255 0 / 0.6));
+    left: 50%;
+    bottom: clamp(18px, 3.2vh, 32px);
+    translate: -50% 0;
+    max-width: none;
+    width: min(860px, calc(100% - 2 * var(--gutter)));
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-6);
+    padding: 14px 22px 14px 14px;
+    container-type: inline-size;
   }
-  .hero__cap--l .hero__cap-lead {
-    left: 100%;
-    transform-origin: left;
+  .hero__strip-lead p {
+    font-size: 0.875rem;
   }
-  .hero__cap--r .hero__cap-lead {
-    right: 100%;
-    transform-origin: right;
-    background: linear-gradient(270deg, var(--v-hair-strong), rgb(198 255 0 / 0.6));
+  .hero__strip-list > div {
+    min-width: max-content;
   }
-  .hero__cap-lead::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--v-action);
+  .hero__strip-list {
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
   }
-  .hero__cap--l .hero__cap-lead::after { right: -2px; }
-  .hero__cap--r .hero__cap-lead::after { left: -2px; }
+  @container (max-width: 780px) {
+    .hero__strip-list {
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+      column-gap: var(--space-8);
+    }
+  }
 
 }
 
-/* wide screens: give the type more air */
-@media (min-width: 1600px) {
-  .hero__core-anchor {
-    width: min(64vh, 38vw);
+/* short desktop viewports: tighten so nothing collides */
+@media (min-width: 1100px) and (max-height: 800px) {
+  .hero__copy { top: 96px; }
+  .hero__eyebrow { margin-bottom: 14px; }
+  .hero__title { font-size: clamp(3rem, 7vh + 1.4vw, 5rem); }
+  .hero__card--tl { top: 43%; }
+  .hero__card--tr { top: 41%; }
+  .hero__card--bl { top: 66%; }
+  .hero__card--br { top: 64%; }
+  .glass-card__text { font-size: 0.8125rem; }
+  /* short screens: the lower cards and the strip share the same band,
+     so the strip narrows to the lane between them */
+  .hero__strip {
+    width: min(820px, calc(100% - 2 * (var(--card-edge) + var(--card-w) + 18px)));
   }
+  .glass-card { row-gap: 12px; padding: 14px; }
+  .glass-card__icon { width: 38px; height: 38px; }
 }
 
-/* short desktop viewports: keep the intro and spec clear of each other */
-@media (min-width: 1100px) and (max-height: 760px) {
-  .hero__sub { font-size: 1rem; }
-  .hero__spec-row { padding: 8px 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-}
-/* reduced motion on desktop: no scroll scene — the capabilities sit in a calm
-   four-column row under the opening composition instead of annotating it */
-@media (prefers-reduced-motion: reduce) and (min-width: 1100px) {
-  .hero { height: auto; }
-  .hero__stage { position: relative; height: auto; min-height: 0; }
-  .hero__frame { height: auto; min-height: 100svh; grid-template-rows: auto auto 1fr auto auto; }
-  .hero__caps {
-    position: relative;
-    inset: auto;
-    grid-column: 1 / -1;
-    grid-row: 5;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--v-col-gap);
-    margin-top: var(--v-s-8);
-    pointer-events: auto;
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+@media (max-width: 767px) {
+  .hero__stage {
+    padding-top: 100px;
+    gap: var(--space-6);
   }
-  .hero__cap { position: static; width: auto; opacity: 1; }
-  .hero__cap-lead { display: none !important; }
-  .hero__core-anchor { top: calc(100svh * 0.66); }
+  .hero__eyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+  }
+  .hero__title {
+    font-size: clamp(2.6rem, 11.5vw, 3.6rem);
+  }
+  .hero__ctas {
+    width: 100%;
+    flex-direction: column;
+  }
+  .hero__ctas > span,
+  .hero__ctas .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .hero__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero__card .glass-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    row-gap: 0;
+    padding: 14px 14px;
+  }
+  .hero__card .glass-card__icon {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .hero__card .glass-card__body {
+    grid-row: 1;
+    grid-column: 2;
+    padding-right: 44px;
+  }
+  .hero__card .glass-card__go {
+    top: 50%;
+    bottom: auto;
+    translate: 0 -50%;
+  }
+  .glass-float {
+    animation: none;
+  }
 }

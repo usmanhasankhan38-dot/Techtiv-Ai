@@ -2,29 +2,21 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useIsDesktop, useReducedMotion } from '../lib/env'
 import './globe-layer.css'
 
-/* V2: the shared fixed layer now hosts the forged intelligence core. */
-const CoreScene = lazy(() => import('../three/core/CoreScene'))
+const GlobeScene = lazy(() => import('../three/GlobeScene'))
 
-/** Static stand-in (no WebGL / lost context): a CSS-lit metal ring, same silhouette. */
 export function GlobeFallback() {
-  return (
-    <div className="core-fallback" aria-hidden="true">
-      <span className="core-fallback__ring" />
-      <span className="core-fallback__inner" />
-    </div>
-  )
+  return <div className="globe-fallback" aria-hidden="true" />
 }
 
 /**
  * One fixed, full-viewport WebGL layer shared by the Hero and Technology
- * sections. The core inside follows whichever section anchor is active, so
- * one scene (and one render loop) carries the story between the sections.
+ * sections. The globe inside follows whichever section anchor is active, so
+ * the same scene (same rotation, same orbits) travels between sections.
  */
 export default function GlobeLayer({ webgl }: { webgl: boolean }) {
   const reduced = useReducedMotion()
   const desktop = useIsDesktop()
   const [active, setActive] = useState(true)
-  const [lost, setLost] = useState(false)
 
   // render only while the hero or technology section is on screen
   useEffect(() => {
@@ -41,18 +33,13 @@ export default function GlobeLayer({ webgl }: { webgl: boolean }) {
     return () => io.disconnect()
   }, [])
 
-  // a lost GPU context falls back to the static ring in the hero
-  useEffect(() => {
-    document.documentElement.classList.toggle('core-lost', lost)
-  }, [lost])
-
   return (
     <>
       <div className="page-backdrop" aria-hidden="true" />
-      {webgl && !lost && (
+      {webgl && (
         <div className={`globe-layer ${active ? '' : 'is-idle'}`} aria-hidden="true">
           <Suspense fallback={null}>
-            <CoreScene layout={desktop ? 'desktop' : 'compact'} reducedMotion={reduced} active={active} onLost={() => setLost(true)} />
+            <GlobeScene layout={desktop ? 'desktop' : 'compact'} reducedMotion={reduced} active={active} />
           </Suspense>
         </div>
       )}
