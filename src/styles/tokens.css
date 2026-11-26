@@ -6,43 +6,43 @@
    ========================================================================== */
 :root {
   /* ---- Brand palette (live site) ---- */
-  --bg-primary: #030d06;
-  --bg-secondary: #020b0e;
-  --surface-card: #061209;
-  --surface-elevated: #040e12;
-  --accent-lime: #c6ff00;
-  --accent-cyan: #3de8ff;
-  --text-primary: #e8fff5;
-  --text-muted: #4a8a72;
-  --text-on-accent: #000;
-  --border-subtle: #3de8ff24;
-  --border-highlight: #c6ff0059;
-  --ghost-btn-border: #3de8ff73;
-  --hero-eyebrow-bg: #c6ff000f;
-  --hero-eyebrow-border: #c6ff0059;
-  --icon-wrap-bg: #c6ff000f;
-  --icon-wrap-border: #c6ff0033;
-  --nav-bg: #030d06e6;
-  --nav-hover-bg: #c6ff0012;
-  --shadow-lime: #c6ff002e;
-  --shadow-cyan: #3de8ff24;
+  --bg-primary: rgb(var(--c-3-13-6, 3 13 6));
+  --bg-secondary: rgb(var(--c-2-11-14, 2 11 14));
+  --surface-card: rgb(var(--c-6-18-9, 6 18 9));
+  --surface-elevated: rgb(var(--c-4-14-18, 4 14 18));
+  --accent-lime: rgb(var(--c-198-255-0, 198 255 0));
+  --accent-cyan: rgb(var(--c-61-232-255, 61 232 255));
+  --text-primary: rgb(var(--c-232-255-245, 232 255 245));
+  --text-muted: rgb(var(--c-74-138-114, 74 138 114));
+  --text-on-accent: rgb(var(--c-0-0-0, 0 0 0));
+  --border-subtle: rgb(var(--c-61-232-255, 61 232 255) / 0.141);
+  --border-highlight: rgb(var(--c-198-255-0, 198 255 0) / 0.349);
+  --ghost-btn-border: rgb(var(--c-61-232-255, 61 232 255) / 0.451);
+  --hero-eyebrow-bg: rgb(var(--c-198-255-0, 198 255 0) / 0.059);
+  --hero-eyebrow-border: rgb(var(--c-198-255-0, 198 255 0) / 0.349);
+  --icon-wrap-bg: rgb(var(--c-198-255-0, 198 255 0) / 0.059);
+  --icon-wrap-border: rgb(var(--c-198-255-0, 198 255 0) / 0.2);
+  --nav-bg: rgb(var(--c-3-13-6, 3 13 6) / 0.902);
+  --nav-hover-bg: rgb(var(--c-198-255-0, 198 255 0) / 0.071);
+  --shadow-lime: rgb(var(--c-198-255-0, 198 255 0) / 0.18);
+  --shadow-cyan: rgb(var(--c-61-232-255, 61 232 255) / 0.141);
   --cursor-dot: var(--accent-lime);
-  --cursor-ring: #c6ff008c;
+  --cursor-ring: rgb(var(--c-198-255-0, 198 255 0) / 0.549);
   --ring: var(--accent-cyan);
   --gradient-brand: linear-gradient(95deg, var(--accent-cyan) 0%, var(--accent-lime) 100%);
 
   /* ---- Derived text tones ---- */
-  --text-body: rgb(232 255 245 / 0.74);      /* derived: text-primary @ 74% */
-  --text-soft: rgb(232 255 245 / 0.56);      /* derived: text-primary @ 56% */
+  --text-body: rgb(var(--c-232-255-245, 232 255 245) / 0.74);      /* derived: text-primary @ 74% */
+  --text-soft: rgb(var(--c-232-255-245, 232 255 245) / 0.56);      /* derived: text-primary @ 56% */
 
   /* ---- Glass material (derived) ---- */
-  --glass-fill: linear-gradient(155deg, rgb(232 255 245 / 0.075) 0%, rgb(6 18 9 / 0.42) 38%, rgb(2 11 14 / 0.58) 100%);
+  --glass-fill: linear-gradient(155deg, rgb(var(--c-232-255-245, 232 255 245) / 0.075) 0%, rgb(var(--c-6-18-9, 6 18 9) / 0.42) 38%, rgb(var(--c-2-11-14, 2 11 14) / 0.58) 100%);
   --glass-blur: 18px;
   --glass-saturate: 140%;
-  --glass-border: rgb(232 255 245 / 0.11);
-  --glass-border-strong: rgb(232 255 245 / 0.2);
-  --glass-inner-highlight: inset 0 1px 0 rgb(232 255 245 / 0.10), inset 0 0 0 1px rgb(232 255 245 / 0.02);
-  --glass-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.85), 0 10px 24px -12px rgb(0 0 0 / 0.6);
+  --glass-border: rgb(var(--c-232-255-245, 232 255 245) / 0.11);
+  --glass-border-strong: rgb(var(--c-232-255-245, 232 255 245) / 0.2);
+  --glass-inner-highlight: inset 0 1px 0 rgb(var(--c-232-255-245, 232 255 245) / 0.10), inset 0 0 0 1px rgb(var(--c-232-255-245, 232 255 245) / 0.02);
+  --glass-shadow: 0 30px 60px -28px rgb(var(--c-0-0-0, 0 0 0) / calc(0.85 * var(--shadow-k, 1))), 0 10px 24px -12px rgb(var(--c-0-0-0, 0 0 0) / calc(0.6 * var(--shadow-k, 1)));
 
   /* ---- Typography ---- */
   --font-display: "Clash Display", system-ui, sans-serif;

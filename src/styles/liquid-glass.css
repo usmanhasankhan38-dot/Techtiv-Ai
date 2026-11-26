@@ -1,0 +1,368 @@
+/* ==========================================================================
+   V3 · Liquid Glass material system
+   One physical material for every glass surface on the page. The light
+   source is fixed top-left for the whole site, so every rim highlight,
+   bevel, reflection and contact shadow agrees with every other one.
+
+   Layers (back → front):
+     1 translucent base   — three-stop tint, lighter at the lit corner
+     2 optical depth      — inset bevel glow (lit edge) + inset bevel shade
+     3 bevelled edge      — 1px specular rim TL, 1px dark rim BR, hairline
+     4 surface reflection — diagonal sheen + a soft specular pool that
+                            follows the pointer (--mx/--my, --lg-spec)
+     5 contact shadow     — tight contact + soft ambient, cast down-right
+
+   Variants: panel (large, default) · float (over 3D/content: adds blur) ·
+             well (recessed: inputs, chips, list rows) · bead (icon boxes).
+   Radii are left to each component (layouts are unchanged).
+   ========================================================================== */
+
+/* ---------------- tokens: dark (smoked emerald glass) ---------------- */
+:root {
+  --lg-tint-a: rgb(214 255 236 / 0.085);
+  --lg-tint-b: rgb(14 38 25 / 0.5);
+  --lg-tint-c: rgb(4 15 9 / 0.7);
+  --lg-tint-solid-b: rgb(11 30 20 / 0.86); /* panels that hold dense UI */
+  --lg-tint-solid-c: rgb(5 15 10 / 0.92);
+  --lg-sheen: rgb(232 255 245 / 0.055);
+  --lg-spec-color: 232 255 245;
+  --lg-spec-k: 0.11;
+  --lg-blur: 16px;
+  --lg-sat: 150%;
+
+  --lg-rim-hi: rgb(236 255 247 / 0.26);
+  --lg-rim-lo: rgb(0 0 0 / 0.55);
+  --lg-hairline: rgb(232 255 245 / 0.075);
+  --lg-bevel-glow: rgb(170 255 225 / 0.075);
+  --lg-bevel-shade: rgb(0 0 0 / 0.42);
+  --lg-edge-tint: rgb(61 232 255 / 0.06); /* faint cyan in the thickness */
+
+  --lg-shadow-contact: rgb(0 0 0 / 0.55);
+  --lg-shadow-ambient: rgb(0 0 0 / 0.6);
+
+  --lg-well-bg: linear-gradient(150deg, rgb(0 6 3 / 0.5), rgb(6 18 11 / 0.35));
+  --lg-well-in-dark: rgb(0 0 0 / 0.5);
+  --lg-well-in-lite: rgb(232 255 245 / 0.07);
+  --lg-well-line: rgb(232 255 245 / 0.06);
+
+  /* composed bevel + shadow stacks (no element-scoped vars inside) */
+  --lg-bevel:
+    inset 1px 1px 0 0 var(--lg-rim-hi),
+    inset -1px -1px 0 0 var(--lg-rim-lo),
+    inset 0 0 0 1px var(--lg-hairline),
+    inset 10px 12px 22px -16px var(--lg-bevel-glow),
+    inset -12px -14px 26px -16px var(--lg-bevel-shade),
+    inset 0 -3px 6px -4px var(--lg-edge-tint);
+  --lg-drop: 3px 4px 6px -3px var(--lg-shadow-contact), 14px 22px 44px -22px var(--lg-shadow-ambient);
+  --lg-drop-hover: 4px 6px 8px -4px var(--lg-shadow-contact), 20px 32px 60px -26px var(--lg-shadow-ambient);
+  --lg-well:
+    inset 2px 2px 4px -1px var(--lg-well-in-dark),
+    inset -1px -1px 0 0 var(--lg-well-in-lite),
+    inset 0 0 0 1px var(--lg-well-line);
+  --lg-bead:
+    inset 1px 1px 0 0 var(--lg-rim-hi),
+    inset -1px -1px 0 0 var(--lg-rim-lo),
+    inset 0 0 0 1px var(--lg-hairline),
+    inset 4px 5px 8px -6px var(--lg-bevel-glow),
+    2px 3px 5px -2px var(--lg-shadow-contact);
+
+  --lg-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------- tokens: light (frosted off-white glass) ---------------- */
+[data-theme='light'] {
+  --lg-tint-a: rgb(255 255 255 / 0.86);
+  --lg-tint-b: rgb(247 251 248 / 0.66);
+  --lg-tint-c: rgb(228 238 232 / 0.7);
+  --lg-tint-solid-b: rgb(248 251 249 / 0.9);
+  --lg-tint-solid-c: rgb(234 242 237 / 0.92);
+  --lg-sheen: rgb(255 255 255 / 0.55);
+  --lg-spec-color: 255 255 255;
+  --lg-spec-k: 0.7;
+  --lg-blur: 14px;
+  --lg-sat: 140%;
+
+  --lg-rim-hi: rgb(255 255 255 / 1);
+  --lg-rim-lo: rgb(48 82 64 / 0.2);
+  --lg-hairline: rgb(16 44 31 / 0.075);
+  --lg-bevel-glow: rgb(255 255 255 / 0.95);
+  --lg-bevel-shade: rgb(52 88 70 / 0.12);
+  --lg-edge-tint: rgb(0 128 150 / 0.05);
+
+  --lg-shadow-contact: rgb(38 66 52 / 0.16);
+  --lg-shadow-ambient: rgb(38 70 54 / 0.2);
+
+  --lg-well-bg: linear-gradient(150deg, rgb(226 235 229 / 0.7), rgb(244 248 245 / 0.75));
+  --lg-well-in-dark: rgb(40 72 56 / 0.16);
+  --lg-well-in-lite: rgb(255 255 255 / 0.95);
+  --lg-well-line: rgb(16 44 31 / 0.06);
+}
+
+/* =====================  1 · PANEL / FLOAT  ===================== */
+/* Large surfaces. Background and shadow come from the material; each
+   component keeps its own radius, padding, layout and state styles
+   (state selectors are more specific and still win). */
+html .glass,
+html .glass-card,
+html .wf-card,
+html .wf__panel,
+html .tp,
+html .afc,
+html .af-strip,
+html .agb,
+html .af__card,
+html .af__tile,
+html .ax-panel,
+html .ax-strip,
+html .bp-stage,
+html .bv-card,
+html .cw,
+html .fq-card,
+html .hw-detail,
+html .pc__bg,
+html .pd-card,
+html .nav__rail,
+html .nav__panel,
+html .nav__menu-btn {
+  --lg-spec: 0.35;
+  background:
+    radial-gradient(340px circle at var(--mx, 16%) var(--my, 0%), rgb(var(--lg-spec-color) / calc(var(--lg-spec-k) * var(--lg-spec))), transparent 62%),
+    linear-gradient(132deg, var(--lg-sheen) 0%, transparent 34%),
+    linear-gradient(150deg, var(--lg-tint-a) 0%, var(--lg-tint-b) 46%, var(--lg-tint-c) 100%);
+  box-shadow: var(--lg-bevel), var(--lg-drop);
+  transition: box-shadow 0.5s var(--lg-ease), transform 0.5s var(--lg-ease);
+}
+/* panels that carry dense interface: same material, less see-through */
+html .wf__panel,
+html .ax-panel,
+html .ax-strip,
+html .bp-stage,
+html .cw,
+html .agb,
+html .pc__bg,
+html .fq-card,
+html .hw-detail,
+html .nav__panel {
+  background:
+    radial-gradient(420px circle at var(--mx, 16%) var(--my, 0%), rgb(var(--lg-spec-color) / calc(var(--lg-spec-k) * var(--lg-spec))), transparent 62%),
+    linear-gradient(132deg, var(--lg-sheen) 0%, transparent 30%),
+    linear-gradient(150deg, var(--lg-tint-a) 0%, var(--lg-tint-solid-b) 40%, var(--lg-tint-solid-c) 100%);
+}
+/* floating surfaces sit over 3D or content: these are the only ones that
+   pay for a backdrop filter */
+html .glass,
+html .glass-card,
+html .wf-card,
+html .tp,
+html .nav__rail,
+html .nav__panel,
+html .nav__menu-btn {
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+}
+
+/* hover: the plate lifts a little — the shadow deepens, the reflection
+   brightens (GSAP drives --lg-spec); no neon */
+html .glass-card:hover,
+html .wf-card:hover,
+html .afc:hover,
+html .af__tile:hover,
+html .pd-card:hover,
+html .fq-card:hover {
+  box-shadow: var(--lg-bevel), var(--lg-drop-hover);
+}
+/* the old cursor-coloured border glow becomes a quiet edge light */
+html .glass-card:hover::before {
+  background:
+    radial-gradient(200px circle at var(--mx) var(--my), rgb(var(--lg-spec-color) / 0.45), transparent 70%),
+    linear-gradient(150deg, var(--glass-border-strong), var(--glass-border) 42%, rgb(232 255 245 / 0.05));
+}
+html .glass-card::after {
+  display: none; /* reflection now lives in the material itself */
+}
+/* pressed controls compress into the surface */
+html .glass-card:active,
+html .nav__menu-btn:active,
+html .af__tile:active {
+  box-shadow: var(--lg-bevel), 1px 2px 3px -2px var(--lg-shadow-contact);
+}
+
+/* =====================  2 · WELL (recessed)  ===================== */
+html .cw__input,
+html .pw__search,
+html .ax-event,
+html .ax-trig__opt,
+html .ax-svc,
+html .af-pick,
+html .afc__vis,
+html .tech__item,
+html .bp-tabs button,
+html .pm-chip,
+html .pm-rec,
+html .pm-slot {
+  background: var(--lg-well-bg);
+  box-shadow: var(--lg-well);
+}
+
+/* =====================  3 · BEAD (icon containers)  ===================== */
+html .glass-card__icon,
+html .wf-card__icon,
+html .hero__strip-icon,
+html .afc__icon,
+html .tp__logo,
+html .tech__item-logo,
+html .glass-card__go {
+  background:
+    linear-gradient(132deg, var(--lg-sheen) 0%, transparent 40%),
+    linear-gradient(150deg, var(--lg-tint-a), var(--lg-tint-b) 55%, var(--lg-tint-c));
+  border-color: transparent;
+  box-shadow: var(--lg-bead);
+}
+html .glass-card:hover .glass-card__go {
+  background: var(--accent-lime);
+  color: var(--text-on-accent);
+}
+
+/* =====================  4 · CTA + toggle integration  ===================== */
+/* CTA: the inner surface becomes a thick glass bead; the travelling
+   perimeter light (cta.css) is untouched. */
+html .cta__surface {
+  box-shadow:
+    inset 1px 1px 0 0 rgb(255 255 255 / 0.16),
+    inset -1px -1px 0 0 rgb(0 0 0 / 0.35),
+    inset 8px 10px 16px -14px rgb(255 255 255 / 0.22),
+    inset -8px -10px 16px -12px rgb(0 0 0 / 0.35);
+}
+html .cta__surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(170deg, rgb(255 255 255 / 0.14) 0%, rgb(255 255 255 / 0.03) 42%, transparent 52%);
+  pointer-events: none;
+}
+html .cta--secondary .cta__surface {
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+}
+[data-theme='light'] .cta--secondary .cta__surface {
+  box-shadow:
+    inset 1px 1px 0 0 rgb(255 255 255 / 1),
+    inset -1px -1px 0 0 rgb(48 82 64 / 0.16),
+    inset 8px 10px 16px -14px rgb(255 255 255 / 0.9),
+    inset -8px -10px 16px -12px rgb(52 88 70 / 0.1);
+}
+/* toggle track: same well recipe as every other recessed surface */
+html .tt__track {
+  background: var(--lg-well-bg), var(--tt-track);
+  box-shadow: var(--lg-well), 1px 1px 0 0 var(--lg-well-in-lite);
+}
+
+/* =====================  5 · fallbacks  ===================== */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html .glass,
+  html .glass-card,
+  html .wf-card,
+  html .tp,
+  html .nav__rail,
+  html .nav__panel {
+    background: linear-gradient(150deg, var(--lg-tint-a), var(--lg-tint-solid-b) 40%, var(--lg-tint-solid-c));
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  html .glass,
+  html .glass-card,
+  html .wf-card,
+  html .tp,
+  html .nav__rail,
+  html .nav__panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(150deg, var(--lg-tint-a), var(--lg-tint-solid-b) 40%, var(--lg-tint-solid-c));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html .glass,
+  html .glass-card,
+  html .wf-card,
+  html .afc,
+  html .pd-card,
+  html .fq-card {
+    transition: none;
+  }
+}
+
+
+/* =====================  6 · theme transition  ===================== */
+/* the material's colours are registered, so a theme switch cross-fades the
+   glass itself (tint, rims, bevel, shadows) instead of snapping */
+@property --lg-tint-a {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-tint-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-tint-c {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-tint-solid-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-tint-solid-c {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-sheen {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-rim-hi {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-rim-lo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-hairline {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-bevel-glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-bevel-shade {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-shadow-contact {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --lg-shadow-ambient {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+html.theme-anim {
+  transition-property: --lg-tint-a, --lg-tint-b, --lg-tint-c, --lg-tint-solid-b, --lg-tint-solid-c, --lg-sheen, --lg-rim-hi, --lg-rim-lo, --lg-hairline, --lg-bevel-glow, --lg-bevel-shade, --lg-shadow-contact, --lg-shadow-ambient, background-color, color !important;
+  transition-duration: 0.7s !important;
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1) !important;
+}

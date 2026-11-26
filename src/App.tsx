@@ -18,12 +18,14 @@ import Footer from './components/footer/Footer'
 import GlobeLayer from './components/GlobeLayer'
 import Cursor from './components/Cursor'
 import { initPointerTracking } from './lib/store'
+import { installLiquidGlass } from './lib/liquidGlass'
 import { hasWebGL, useFinePointer, useReducedMotion } from './lib/env'
 
 export default function App() {
   const fine = useFinePointer()
   const reduced = useReducedMotion()
   const [webgl] = useState(() => hasWebGL())
+  useEffect(() => installLiquidGlass(), [])
   useEffect(() => initPointerTracking(), [])
 
   // keep every ScrollTrigger in sync with the real page height (fonts, panels and

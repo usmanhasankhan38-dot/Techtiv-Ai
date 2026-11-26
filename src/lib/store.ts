@@ -38,10 +38,6 @@ export const sceneState = {
   forceLiquid: null as number | null, // QA override only
 }
 
-if (typeof window !== 'undefined' && window.location.hash === '#debug') {
-  ;(window as unknown as Record<string, unknown>).__hero = { pointer, sceneState, sceneMotion }
-}
-
 export function initPointerTracking() {
   const onMove = (e: PointerEvent) => {
     const now = performance.now()
@@ -79,4 +75,38 @@ export function initPointerTracking() {
     document.documentElement.removeEventListener('pointerleave', onLeave)
     cancelAnimationFrame(raf)
   }
+}
+
+/**
+ * V3 Technology explorer — shared, mutable interaction state between the
+ * Technology section (DOM, GSAP) and the globe scene (WebGL). Per-frame values
+ * live here so pointer movement never re-renders React.
+ *   UI → scene : overGlobe, mouse, dragging, dragDX/dragDY, focusReq, pick
+ *   scene → UI : enabled, hover, sx/sy/facing (active hotspot), cx/cy/rpx (globe)
+ */
+export const techGlobe = {
+  count: 0,
+  enabled: false, // the globe has settled in Technology and accepts interaction
+  intro: 0, // 0–1 hotspot stagger-in (GSAP)
+  mouse: true, // last pointer was a mouse (hover allowed)
+  overGlobe: false,
+  dragging: false,
+  dragDX: 0,
+  dragDY: 0,
+  hover: -1, // hotspot under the mouse (scene)
+  active: -1, // hotspot whose popup is open (UI)
+  focusReq: -1, // UI asks the scene to turn a hotspot to the front
+  pick: { x: 0, y: 0, id: 0 }, // tap / click pick request (UI)
+  pickAns: { id: 0, idx: -1 }, // answer (scene)
+  sx: 0, // active hotspot, screen px
+  sy: 0,
+  facing: 0,
+  cx: 0, // globe centre + radius, screen px
+  cy: 0,
+  rpx: 0,
+  invalidate: null as null | (() => void), // demand-mode redraw (reduced motion)
+}
+
+if (typeof window !== 'undefined' && window.location.hash === '#debug') {
+  ;(window as unknown as Record<string, unknown>).__hero = { pointer, sceneState, sceneMotion, techGlobe }
 }

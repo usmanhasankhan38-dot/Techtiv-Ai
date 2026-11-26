@@ -6,6 +6,7 @@ import { PREVIEW_MODE, useReducedMotion } from '../../lib/env'
 import { CHAPTERS, COPY } from './blueprintData'
 import { V1, V2, V3, V4, V5 } from './Visuals'
 import './blueprint.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -163,12 +164,12 @@ export default function Blueprint() {
           </div>
           <div className="bp__aside">
             <p className="bp__desc">{COPY.desc}</p>
-            <a className="btn btn--primary bp__cta" href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
+            <Cta className="bp__cta" href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
               {COPY.cta}
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" />
               </svg>
-            </a>
+            </Cta>
           </div>
         </header>
 
@@ -207,12 +208,12 @@ export default function Blueprint() {
                   <p>
                     <b>Your report, assembled.</b> All 11 sections, delivered as your blueprint and PDF.
                   </p>
-                  <a className="btn btn--primary" href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
+                  <Cta href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
                     {COPY.cta}
                     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" />
                     </svg>
-                  </a>
+                  </Cta>
                 </div>
               </>
             ) : (

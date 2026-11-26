@@ -1,12 +1,16 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { buildLandCloud } from './landPoints'
 import {
   atmoFragment, atmoVertex, coreFragment, coreVertex, fieldFragment, fieldVertex,
   landFragment, landVertex, orbitPointFragment, orbitPointVertex, ringFragment, ringVertex,
 } from './shaders'
-import { globeAnchors, pointer, sceneMotion, sceneState } from '../lib/store'
+import { globeAnchors, pointer, sceneMotion, sceneState, techGlobe } from '../lib/store'
+import { hotspotGeometry, hotspotMaterial } from './techHotspots'
+import { TECH } from '../components/tech/techData'
+import { themeState } from '../lib/theme'
+import ThemeInvalidate from './ThemeInvalidate'
 
 type AnchorBox = { cx: number; cy: number; d: number }
 function readAnchor(el: HTMLElement | null, out: AnchorBox): AnchorBox | null {
@@ -24,6 +28,19 @@ const LIME = new THREE.Color('#c6ff00')
 const CYAN = new THREE.Color('#3de8ff')
 const MINT = new THREE.Color('#e8fff5')
 const BASE = new THREE.Color('#06140b') // between --bg-primary and --surface-card, lifted for form
+/* Light theme: the sphere stays a dark object (the dotted land needs it), but
+   lifts to deep forest; the additive glows are re-toned to teal/olive and the
+   orbit rings switch to normal blending so they read as ink on a light page. */
+const L_LIME = new THREE.Color('#4f7d00')
+const L_CYAN = new THREE.Color('#007f97')
+const L_BASE = new THREE.Color('#0c2a1a')
+const L_ATMO_C = new THREE.Color('#0a6f7f')
+const L_ATMO_L = new THREE.Color('#3f6d00')
+type U = { value: THREE.Color }
+/** lerp a colour uniform between its dark and light value by the theme mix */
+function tone(u: U, dark: THREE.Color, light: THREE.Color, k: number) {
+  u.value.copy(dark).lerp(light, k)
+}
 
 export type GlobeLayout = 'desktop' | 'compact'
 
@@ -41,6 +58,7 @@ const ORBITS = [
 
 function OrbitRing({ cfg, index, reduced }: { cfg: (typeof ORBITS)[number]; index: number; reduced: boolean }) {
   const outer = useRef<THREE.Group>(null!)
+  const lastK = useRef(-1)
   const ringMat = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -55,8 +73,8 @@ function OrbitRing({ cfg, index, reduced }: { cfg: (typeof ORBITS)[number]; inde
           uPhase: { value: cfg.phase },
           uDraw: { value: 0 },
           uOpacity: { value: 0.9 },
-          uCyan: { value: CYAN },
-          uLime: { value: LIME },
+          uCyan: { value: CYAN.clone() },
+          uLime: { value: LIME.clone() },
         },
       }),
     [cfg],
@@ -75,7 +93,7 @@ function OrbitRing({ cfg, index, reduced }: { cfg: (typeof ORBITS)[number]; inde
           uRadiusOrbit: { value: cfg.r },
           uPixelRatio: { value: 1 },
           uDraw: { value: 0 },
-          uColor: { value: index % 2 ? CYAN : LIME },
+          uColor: { value: (index % 2 ? CYAN : LIME).clone() },
         },
       }),
     [cfg, index],
@@ -104,6 +122,17 @@ function OrbitRing({ cfg, index, reduced }: { cfg: (typeof ORBITS)[number]; inde
     ptsMat.uniforms.uTime.value = t
     ptsMat.uniforms.uDraw.value = draw
     ptsMat.uniforms.uPixelRatio.value = state.gl.getPixelRatio()
+    const k = themeState.t
+    if (k !== lastK.current) {
+      lastK.current = k
+      tone(ringMat.uniforms.uCyan, CYAN, L_CYAN, k)
+      tone(ringMat.uniforms.uLime, LIME, L_LIME, k)
+      tone(ptsMat.uniforms.uColor, index % 2 ? CYAN : LIME, index % 2 ? L_CYAN : L_LIME, k)
+      const blend = k > 0.5 ? THREE.NormalBlending : THREE.AdditiveBlending
+      ringMat.blending = blend
+      ptsMat.blending = blend
+      ringMat.uniforms.uOpacity.value = 0.9 - 0.25 * k
+    }
     if (!reduced) {
       // slow, independent precession for each orbit
       outer.current.rotation.y = cfg.yaw + Math.sin(t * 0.07 + index * 2.1) * 0.12
@@ -127,7 +156,21 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
   const tilt = useRef<THREE.Group>(null!)
   const spin = useRef<THREE.Group>(null!)
   const field = useRef<THREE.Mesh>(null!)
-  const { camera, gl, size, viewport } = useThree()
+  const hot = useRef<THREE.Points>(null!)
+  const { camera, gl, size, viewport, invalidate } = useThree()
+
+  /* V3 Technology explorer: one hotspot per technology, on the spinning globe */
+  const hotGeo = useMemo(() => hotspotGeometry(TECH.length), [])
+  const hotMat = useMemo(() => hotspotMaterial(TECH.length), [])
+  useEffect(() => {
+    techGlobe.count = TECH.length
+    techGlobe.invalidate = invalidate
+    return () => {
+      techGlobe.invalidate = null
+      hotGeo.dispose()
+      hotMat.dispose()
+    }
+  }, [invalidate, hotGeo, hotMat])
 
   const samples = lowPower || layout === 'compact' ? 26000 : 46000
   const cloud = useMemo(() => buildLandCloud(samples, 1.004), [samples])
@@ -156,13 +199,13 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
         uRadius: { value: 1 },
         uLand: { value: MINT },
         uHot: { value: LIME },
-        uCyan: { value: CYAN },
+        uCyan: { value: CYAN.clone() },
       },
     })
     const core = new THREE.ShaderMaterial({
       vertexShader: coreVertex,
       fragmentShader: coreFragment,
-      uniforms: { uBase: { value: BASE }, uCyan: { value: CYAN }, uLime: { value: LIME }, uReveal: { value: 0 } },
+      uniforms: { uBase: { value: BASE.clone() }, uCyan: { value: CYAN.clone() }, uLime: { value: LIME.clone() }, uReveal: { value: 0 } },
     })
     const atmo = new THREE.ShaderMaterial({
       vertexShader: atmoVertex,
@@ -171,7 +214,7 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      uniforms: { uCyan: { value: CYAN }, uLime: { value: LIME }, uReveal: { value: 0 } },
+      uniforms: { uCyan: { value: CYAN.clone() }, uLime: { value: LIME.clone() }, uReveal: { value: 0 } },
     })
     const fieldMat = new THREE.ShaderMaterial({
       vertexShader: fieldVertex,
@@ -185,8 +228,8 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
         uVel: { value: new THREE.Vector2() },
         uStrength: { value: 0 },
         uReveal: { value: 0 },
-        uCyan: { value: CYAN },
-        uLime: { value: LIME },
+        uCyan: { value: CYAN.clone() },
+        uLime: { value: LIME.clone() },
       },
     })
     return { land, core, atmo, fieldMat }
@@ -197,6 +240,7 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
     () => ({
       ray: new THREE.Raycaster(),
       ndc: new THREE.Vector2(),
+      themeK: -1,
       center: new THREE.Vector3(),
       hit: new THREE.Vector3(),
       local: new THREE.Vector3(),
@@ -213,6 +257,22 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
       parY: 0,
       ra: { cx: 0, cy: 0, d: 0 },
       rb: { cx: 0, cy: 0, d: 0 },
+      // orientation (quaternion): auto spin + drag + inertia share one angular velocity
+      pq: new THREE.Quaternion(),
+      pqi: new THREE.Quaternion(),
+      wq: new THREE.Quaternion(),
+      rq: new THREE.Quaternion(),
+      omega: new THREE.Vector3(), // manual / inertial angular velocity, world, rad/s
+      axis: new THREE.Vector3(),
+      auto: reducedMotion ? 0 : 0.085, // current auto speed (rad/s), eased toward its target
+      focusQ: new THREE.Quaternion(),
+      focusing: false,
+      v1: new THREE.Vector3(),
+      v2: new THREE.Vector3(),
+      cam: new THREE.Vector3(),
+      hits: [] as THREE.Intersection[],
+      lastPick: 0,
+      hoverPrev: -1,
     }),
     [],
   )
@@ -253,17 +313,149 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
     root.current.scale.setScalar(R)
     root.current.position.set((cx / size.width - 0.5) * viewport.width, (0.5 - cy / size.height) * viewport.height, 0)
 
-    // ---- continuous motion ----
+    // ---- orientation: quaternion, so auto spin, drag and inertia never fight ----
+    // (GSAP never touches rotation: it only feeds intro / handoff values)
+    const tg = techGlobe
+    const interactive = !!b && h > 0.9
+    tg.enabled = interactive
+    const sp = spin.current
+    ;(sp.parent as THREE.Object3D).getWorldQuaternion(tmp.pq)
+    tmp.pqi.copy(tmp.pq).invert()
+    tmp.wq.copy(tmp.pq).multiply(sp.quaternion) // spin's world orientation
+    // drag: the surface follows the pointer (arc length = px / globe radius)
+    const rpx = Math.max(40, diameterPx / 2)
+    if (interactive && tg.dragging) {
+      const ax = tg.dragDY / rpx
+      const ay = tg.dragDX / rpx
+      tg.dragDX = 0
+      tg.dragDY = 0
+      tmp.v1.set(ax, ay, 0) // rotation vector: about screen X (vertical drag) and Y (horizontal)
+      const ang = tmp.v1.length()
+      if (ang > 1e-6) {
+        tmp.rq.setFromAxisAngle(tmp.axis.copy(tmp.v1).normalize(), ang)
+        tmp.wq.premultiply(tmp.rq)
+      }
+      // remember the release velocity for inertia (smoothed)
+      tmp.omega.lerp(tmp.v1.multiplyScalar(1 / Math.max(dt, 1 / 120)), 0.35)
+      tmp.focusing = false
+    } else if (tmp.omega.lengthSq() > 1e-8) {
+      // natural inertia after release, damped
+      const ang = tmp.omega.length() * dt
+      tmp.rq.setFromAxisAngle(tmp.axis.copy(tmp.omega).normalize(), ang)
+      tmp.wq.premultiply(tmp.rq)
+      tmp.omega.multiplyScalar(Math.exp(-2.6 * dt))
+      if (tmp.omega.lengthSq() < 1e-6) tmp.omega.set(0, 0, 0)
+    }
+    // auto rotation about the globe's own (tilted) axis — the hero's original motion
+    const autoTarget = reducedMotion
+      ? 0
+      : !interactive
+        ? 0.085
+        : tg.dragging || tg.active >= 0 || tg.hover >= 0
+          ? 0
+          : tg.overGlobe
+            ? 0.028
+            : 0.085
+    tmp.auto += (autoTarget - tmp.auto) * (1 - Math.exp(-(autoTarget > tmp.auto ? 0.9 : 3.2) * dt))
+    if (tmp.auto > 1e-4) {
+      tmp.axis.set(0, 1, 0).applyQuaternion(tmp.wq)
+      tmp.rq.setFromAxisAngle(tmp.axis, tmp.auto * dt)
+      tmp.wq.premultiply(tmp.rq)
+    }
+    // keyboard / index request: turn a hotspot to face the viewer
+    if (interactive && tg.focusReq >= 0) {
+      const pos = hotGeo.getAttribute('position') as THREE.BufferAttribute
+      tmp.v1.fromBufferAttribute(pos, tg.focusReq).normalize().applyQuaternion(tmp.wq)
+      root.current.getWorldPosition(tmp.center)
+      tmp.v2.copy(camera.position).sub(tmp.center).normalize() // toward the viewer
+      tmp.rq.setFromUnitVectors(tmp.v1, tmp.v2)
+      tmp.focusQ.copy(tmp.wq).premultiply(tmp.rq)
+      tmp.focusing = true
+      tmp.omega.set(0, 0, 0)
+      tg.focusReq = -1
+    }
+    if (tmp.focusing) {
+      if (reducedMotion) tmp.wq.copy(tmp.focusQ)
+      else tmp.wq.slerp(tmp.focusQ, 1 - Math.exp(-5 * dt))
+      if (tmp.wq.angleTo(tmp.focusQ) < 0.002) tmp.focusing = false
+      else invalidate()
+    }
+    sp.quaternion.copy(tmp.pqi).multiply(tmp.wq).normalize()
+
     if (!reducedMotion) {
-      spin.current.rotation.y += dt * 0.085
-      // subtle parallax toward the pointer
+      // subtle parallax toward the pointer (hero); stilled while exploring Technology
+      const quiet = interactive ? 0 : 1
       const nx = pointer.inside ? (pointer.x / window.innerWidth) * 2 - 1 : 0
       const ny = pointer.inside ? (pointer.y / window.innerHeight) * 2 - 1 : 0
-      tmp.parX += (ny * 0.06 - tmp.parX) * 0.04
-      tmp.parY += (nx * 0.08 - tmp.parY) * 0.04
+      tmp.parX += (ny * 0.06 * quiet - tmp.parX) * 0.04
+      tmp.parY += (nx * 0.08 * quiet - tmp.parY) * 0.04
       tilt.current.rotation.x = tmp.parX
       tilt.current.rotation.y = tmp.parY
     }
+    root.current.updateMatrixWorld(true)
+
+    // ---- hotspots: raycast pick (front face only), screen anchor for the popup ----
+    const hm = hotMat.uniforms
+    hm.uIntro.value = tg.intro * THREE.MathUtils.smoothstep(h, 0.55, 1)
+    hm.uTime.value = reducedMotion ? 0.35 : t
+    hm.uPx.value = gl.getPixelRatio()
+    hm.uSize.value = THREE.MathUtils.clamp(diameterPx * 0.05, 20, 30)
+    const pick = (px: number, py: number) => {
+      const rect = gl.domElement.getBoundingClientRect()
+      tmp.ndc.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1)
+      tmp.ray.setFromCamera(tmp.ndc, camera)
+      const worldPerPx = viewport.height / size.height
+      tmp.ray.params.Points = { threshold: worldPerPx * (tg.mouse ? 16 : 26) }
+      tmp.hits.length = 0
+      tmp.ray.intersectObject(hot.current, false, tmp.hits)
+      root.current.getWorldPosition(tmp.center)
+      tmp.cam.copy(camera.position)
+      let best = -1
+      let bestD = Infinity
+      for (const it of tmp.hits) {
+        // a hotspot behind the globe can never be picked through the visible surface
+        tmp.v1.copy(it.point).sub(tmp.center).normalize()
+        tmp.v2.copy(tmp.cam).sub(it.point).normalize()
+        if (tmp.v1.dot(tmp.v2) < 0.3) continue
+        const dRay = it.distanceToRay ?? 0
+        if (dRay < bestD) {
+          bestD = dRay
+          best = it.index ?? -1
+        }
+      }
+      return best
+    }
+    if (interactive && hm.uIntro.value > 0.5) {
+      // mouse hover (not while dragging)
+      tg.hover = tg.mouse && pointer.inside && tg.overGlobe && !tg.dragging ? pick(pointer.x, pointer.y) : -1
+      // tap / click requests
+      if (tg.pick.id !== tmp.lastPick) {
+        tmp.lastPick = tg.pick.id
+        tg.pickAns = { id: tg.pick.id, idx: pick(tg.pick.x, tg.pick.y) }
+      }
+    } else {
+      tg.hover = -1
+    }
+    if (tg.hover !== tmp.hoverPrev) {
+      tmp.hoverPrev = tg.hover
+      invalidate()
+    }
+    hm.uHover.value = tg.hover
+    hm.uActive.value = tg.active
+    if (tg.active >= 0) {
+      const pos = hotGeo.getAttribute('position') as THREE.BufferAttribute
+      tmp.v1.fromBufferAttribute(pos, tg.active)
+      hot.current.localToWorld(tmp.v1)
+      root.current.getWorldPosition(tmp.center)
+      tmp.v2.copy(tmp.v1).sub(tmp.center).normalize()
+      tg.facing = tmp.v2.dot(tmp.cam.copy(camera.position).sub(tmp.v1).normalize())
+      tmp.v1.project(camera)
+      tg.sx = (tmp.v1.x * 0.5 + 0.5) * size.width
+      tg.sy = (-tmp.v1.y * 0.5 + 0.5) * size.height
+    }
+    tg.cx = cx
+    tg.cy = cy
+    tg.rpx = rpx
 
     // ---- pointer → globe (analytic ray / sphere test) ----
     let onGlobe = false
@@ -310,6 +502,18 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
     tmp.vel.y += (-pointer.vy * 0.35 - tmp.vel.y) * 0.1
     if (!onGlobe) (land.uniforms.uDrag.value as THREE.Vector3).multiplyScalar(0.95)
 
+    // ---- theme (GSAP tweens themeState.t; materials follow, nothing remounts) ----
+    const k = themeState.t
+    if (k !== tmp.themeK) {
+      tmp.themeK = k
+      tone(core.uniforms.uBase, BASE, L_BASE, k)
+      tone(core.uniforms.uCyan, CYAN, L_CYAN, k * 0.6)
+      tone(core.uniforms.uLime, LIME, L_LIME, k * 0.6)
+      tone(atmo.uniforms.uCyan, CYAN, L_ATMO_C, k)
+      tone(atmo.uniforms.uLime, LIME, L_ATMO_L, k)
+      tone(fieldMat.uniforms.uCyan, CYAN, L_CYAN, k)
+      tone(fieldMat.uniforms.uLime, LIME, L_LIME, k)
+    }
     // ---- uniforms ----
     const reveal = reducedMotion ? 1 : sceneMotion.reveal
     const pr = gl.getPixelRatio()
@@ -341,6 +545,7 @@ function Globe({ layout, reducedMotion, lowPower }: { layout: GlobeLayout; reduc
               <sphereGeometry args={[0.995, 96, 64]} />
             </mesh>
             <points geometry={landGeo} material={mats.land} renderOrder={2} />
+            <points ref={hot} geometry={hotGeo} material={hotMat} renderOrder={3} />
           </group>
         </group>
         <mesh material={mats.atmo} renderOrder={1}>
@@ -389,6 +594,7 @@ export default function GlobeScene({ layout, reducedMotion, active }: Props) {
       events={undefined}
       style={{ pointerEvents: 'none' }}
     >
+      <ThemeInvalidate />
       <FrameRateGuard
         onDecline={() => {
           setDpr(1)

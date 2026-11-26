@@ -39,7 +39,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent-lime);
-  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(var(--c-198-255-0, 198 255 0) / 0.14), 0 0 10px var(--accent-lime);
 }
 .fq__title {
   margin: 0;
@@ -89,11 +89,11 @@
   isolation: isolate;
   overflow: hidden;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgb(10 21 15 / 0.94), rgb(5 12 9 / 0.96));
+  background: linear-gradient(180deg, rgb(var(--c-10-21-15, 10 21 15) / 0.94), rgb(var(--c-5-12-9, 5 12 9) / 0.96));
   box-shadow:
-    inset 0 1px 0 rgb(232 255 245 / 0.07),
-    inset 0 0 0 1px rgb(232 255 245 / 0.08),
-    0 24px 50px -36px rgb(0 0 0 / 0.95);
+    inset 0 1px 0 rgb(var(--c-232-255-245, 232 255 245) / 0.07),
+    inset 0 0 0 1px rgb(var(--c-232-255-245, 232 255 245) / 0.08),
+    0 24px 50px -36px rgb(var(--c-0-0-0, 0 0 0) / calc(0.95 * var(--shadow-k, 1)));
   transition: box-shadow var(--fq-open) var(--fq-ease);
 }
 /* the band of light across the glass — emerald/cyan into lime, never a fill */
@@ -102,9 +102,9 @@
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(28% 120% at 64% 50%, rgb(61 232 255 / 0.09), transparent 70%),
-    radial-gradient(22% 140% at 72% 60%, rgb(198 255 0 / 0.07), transparent 70%),
-    radial-gradient(60% 160% at 50% 120%, rgb(20 80 45 / 0.35), transparent 70%);
+    radial-gradient(28% 120% at 64% 50%, rgb(var(--c-61-232-255, 61 232 255) / 0.09), transparent 70%),
+    radial-gradient(22% 140% at 72% 60%, rgb(var(--c-198-255-0, 198 255 0) / 0.07), transparent 70%),
+    radial-gradient(60% 160% at 50% 120%, rgb(var(--c-20-80-45, 20 80 45) / 0.35), transparent 70%);
   opacity: 0.85;
   transition: opacity var(--fq-open) var(--fq-ease), transform 900ms var(--fq-ease);
 }
@@ -112,24 +112,24 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(260px circle at var(--mx) var(--my), rgb(232 255 245 / 0.06), transparent 65%);
+  background: radial-gradient(260px circle at var(--mx) var(--my), rgb(var(--c-232-255-245, 232 255 245) / 0.06), transparent 65%);
   opacity: 0;
   transition: opacity 260ms var(--fq-ease);
   pointer-events: none;
 }
 .fq-card.is-open {
   box-shadow:
-    inset 0 1px 0 rgb(232 255 245 / 0.1),
-    inset 0 0 0 1px rgb(198 255 0 / 0.3),
-    0 30px 60px -36px rgb(198 255 0 / 0.14);
+    inset 0 1px 0 rgb(var(--c-232-255-245, 232 255 245) / 0.1),
+    inset 0 0 0 1px rgb(var(--c-198-255-0, 198 255 0) / 0.3),
+    0 30px 60px -36px rgb(var(--c-198-255-0, 198 255 0) / 0.14);
 }
 .fq-card.is-open .fq-card__light {
   opacity: 1;
   transform: scaleY(1.04);
   background:
-    radial-gradient(32% 90% at 64% 22%, rgb(61 232 255 / 0.12), transparent 70%),
-    radial-gradient(26% 100% at 74% 30%, rgb(198 255 0 / 0.1), transparent 70%),
-    radial-gradient(60% 120% at 50% 110%, rgb(20 80 45 / 0.4), transparent 70%);
+    radial-gradient(32% 90% at 64% 22%, rgb(var(--c-61-232-255, 61 232 255) / 0.12), transparent 70%),
+    radial-gradient(26% 100% at 74% 30%, rgb(var(--c-198-255-0, 198 255 0) / 0.1), transparent 70%),
+    radial-gradient(60% 120% at 50% 110%, rgb(var(--c-20-80-45, 20 80 45) / 0.4), transparent 70%);
 }
 @media (hover: hover) {
   .fq-card:hover .fq-card__ref {
@@ -137,16 +137,16 @@
   }
   .fq-card:hover:not(.is-open) {
     box-shadow:
-      inset 0 1px 0 rgb(232 255 245 / 0.1),
-      inset 0 0 0 1px rgb(232 255 245 / 0.16),
-      0 24px 50px -36px rgb(0 0 0 / 0.95);
+      inset 0 1px 0 rgb(var(--c-232-255-245, 232 255 245) / 0.1),
+      inset 0 0 0 1px rgb(var(--c-232-255-245, 232 255 245) / 0.16),
+      0 24px 50px -36px rgb(var(--c-0-0-0, 0 0 0) / calc(0.95 * var(--shadow-k, 1)));
   }
   .fq-card:hover .fq-card__t {
-    color: #fff;
+    color: rgb(var(--c-255-255-255, 255 255 255));
   }
   .fq-card:hover .fq-card__ic {
     color: var(--accent-lime);
-    box-shadow: inset 0 0 0 1px rgb(198 255 0 / 0.4);
+    box-shadow: inset 0 0 0 1px rgb(var(--c-198-255-0, 198 255 0) / 0.4);
   }
 }
 
@@ -202,7 +202,7 @@
   width: 36px;
   height: 36px;
   border-radius: 11px;
-  box-shadow: inset 0 0 0 1px rgb(232 255 245 / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-232-255-245, 232 255 245) / 0.14);
   color: var(--text-primary);
   transition: color 250ms var(--fq-ease), box-shadow 250ms var(--fq-ease), background 250ms var(--fq-ease);
 }
@@ -233,7 +233,7 @@
 .fq-card.is-open .fq-card__ic {
   color: var(--text-on-accent);
   background: var(--accent-lime);
-  box-shadow: 0 0 18px rgb(198 255 0 / 0.3);
+  box-shadow: 0 0 18px rgb(var(--c-198-255-0, 198 255 0) / 0.3);
 }
 
 /* ---------- answer ---------- */

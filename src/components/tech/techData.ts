@@ -83,9 +83,3 @@ export const TECH: Tech[] = [
   { id: 'nodejs', name: 'Node.js', desc: 'JavaScript server runtime', tag: 'Runtime', category: 'Development', logo: nodejs },
   { id: 'python', name: 'Python', desc: 'General-purpose programming language', tag: 'AI Language', category: 'Development', logo: python },
 ]
-
-const byId = (ids: string[]) => ids.map((id) => TECH.find((t) => t.id === id)!)
-
-/* Upper stream: models, agents and data. Lower stream: automation, cloud, voice and build stack. */
-export const ROW_TOP = byId(['openai', 'claude', 'gemini', 'llama', 'langchain', 'langgraph', 'crewai', 'autogen', 'llamaindex', 'pinecone', 'weaviate', 'huggingface', 'clip', 'mlflow'])
-export const ROW_BOTTOM = byId(['n8n', 'make', 'zapier', 'ghl', 'bedrock', 'azure', 'googlecloud', 'whisper', 'elevenlabs', 'vapi', 'fastapi', 'nextjs', 'react', 'nodejs', 'python'])

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { onTheme, themeState } from '../../lib/theme'
 
 /* ==========================================================================
    Final CTA — three liquid-glass sculptures, one canvas.
@@ -87,11 +88,12 @@ const ribbon: Fn = (u, v, o) => {
 }
 
 /* studio environment: dark room, brand-coloured light panels */
-function useStudioEnv() {
+function useStudioEnv(light = false) {
   const gl = useThree((s) => s.gl)
   const env = useMemo(() => {
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#020806')
+    // light theme: a pale studio (same brand panels) so reflections match the page
+    scene.background = new THREE.Color(light ? '#cfdcd4' : '#020806')
     const panel = (w: number, h: number, color: string, intensity: number, pos: [number, number, number], look: [number, number, number] = [0, 0, 0]) => {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(intensity), side: THREE.DoubleSide }))
       m.position.set(...pos)
@@ -112,7 +114,7 @@ function useStudioEnv() {
       ;(m.material as THREE.Material | undefined)?.dispose?.()
     })
     return rt
-  }, [gl])
+  }, [gl, light])
   useEffect(() => () => env.dispose(), [env])
   return env.texture
 }
@@ -189,38 +191,69 @@ function Sculpture({ it, i, s, places }: { it: SpecItem; i: number; s: React.Ref
 function Backdrop() {
   const camera = useThree((st) => st.camera)
   const size = useThree((st) => st.size)
-  const tex = useMemo(() => {
-    const c = document.createElement('canvas')
-    c.width = 512
-    c.height = 512
-    const x = c.getContext('2d')!
-    x.fillStyle = '#030d06'
-    x.fillRect(0, 0, 512, 512)
-    const pool = (cx: number, cy: number, r: number, col: string) => {
-      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r)
-      g.addColorStop(0, col)
-      g.addColorStop(1, 'rgba(3,13,6,0)')
-      x.fillStyle = g
+  const [tex, texLight] = useMemo(() => {
+    const paint = (light: boolean) => {
+      const c = document.createElement('canvas')
+      c.width = 512
+      c.height = 512
+      const x = c.getContext('2d')!
+      x.fillStyle = light ? '#f2f6f1' : '#030d06'
       x.fillRect(0, 0, 512, 512)
+      const pool = (cx: number, cy: number, r: number, col: string) => {
+        const g = x.createRadialGradient(cx, cy, 0, cx, cy, r)
+        g.addColorStop(0, col)
+        g.addColorStop(1, light ? 'rgba(242,246,241,0)' : 'rgba(3,13,6,0)')
+        x.fillStyle = g
+        x.fillRect(0, 0, 512, 512)
+      }
+      if (light) {
+        // same pools, re-toned: tinted daylight instead of glow
+        pool(256, 420, 240, 'rgba(40,175,160,0.34)') // teal under the core
+        pool(110, 340, 160, 'rgba(130,190,0,0.26)') // lime, left
+        pool(420, 300, 160, 'rgba(20,110,70,0.22)') // emerald, right
+        pool(256, 470, 120, 'rgba(0,150,175,0.18)') // cyan floor
+      } else {
+        pool(256, 420, 240, 'rgba(40,175,160,0.7)') // teal under the core
+        pool(110, 340, 160, 'rgba(160,220,0,0.36)') // lime, left
+        pool(420, 300, 160, 'rgba(20,110,70,0.5)') // emerald, right
+        pool(256, 470, 120, 'rgba(61,232,255,0.25)') // cyan floor
+      }
+      const t = new THREE.CanvasTexture(c)
+      t.colorSpace = THREE.SRGBColorSpace
+      return t
     }
-    pool(256, 420, 240, 'rgba(40,175,160,0.7)') // teal under the core
-    pool(110, 340, 160, 'rgba(160,220,0,0.36)') // lime, left
-    pool(420, 300, 160, 'rgba(20,110,70,0.5)') // emerald, right
-    pool(256, 470, 120, 'rgba(61,232,255,0.25)') // cyan floor
-    const t = new THREE.CanvasTexture(c)
-    t.colorSpace = THREE.SRGBColorSpace
-    return t
+    return [paint(false), paint(true)]
   }, [])
-  useEffect(() => () => tex.dispose(), [tex])
+  useEffect(
+    () => () => {
+      tex.dispose()
+      texLight.dispose()
+    },
+    [tex, texLight],
+  )
+  // the light backdrop cross-fades over the dark one with the theme tween
+  const lightMat = useRef<THREE.MeshBasicMaterial>(null)
+  useFrame(() => {
+    const m = lightMat.current
+    if (!m) return
+    m.opacity = themeState.t
+    m.visible = themeState.t > 0.001
+  })
   const cam = camera as THREE.PerspectiveCamera
   const z = -7
   const hh = 2 * (cam.position.z - z) * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * 1.25
   const ww = hh * (size.width / size.height)
   return (
-    <mesh position={[0, 0, z]} renderOrder={-1}>
-      <planeGeometry args={[ww, hh]} />
-      <meshBasicMaterial map={tex} toneMapped={false} depthWrite={false} />
-    </mesh>
+    <group>
+      <mesh position={[0, 0, z]} renderOrder={-2}>
+        <planeGeometry args={[ww, hh]} />
+        <meshBasicMaterial map={tex} toneMapped={false} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, 0, z + 0.01]} renderOrder={-1}>
+        <planeGeometry args={[ww, hh]} />
+        <meshBasicMaterial ref={lightMat} map={texLight} toneMapped={false} depthWrite={false} transparent opacity={themeState.t} />
+      </mesh>
+    </group>
   )
 }
 
@@ -255,16 +288,22 @@ function PerfGuard({ onDegrade }: { onDegrade: () => void }) {
 }
 
 function Rig({ s, low }: { s: React.RefObject<CtaState>; low: boolean }) {
-  const env = useStudioEnv()
+  const env = useStudioEnv(false)
+  const envLight = useStudioEnv(true)
   const scene = useThree((st) => st.scene)
   const camera = useThree((st) => st.camera)
   const vp = useThree((st) => st.viewport)
   useEffect(() => {
-    scene.environment = env
+    scene.environment = themeState.t > 0.5 ? envLight : env
     return () => {
       scene.environment = null
     }
-  }, [scene, env])
+  }, [scene, env, envLight])
+  // theme: swap the studio reflection at the midpoint of the tween (no remount)
+  useFrame(() => {
+    const want = themeState.t > 0.5 ? envLight : env
+    if (scene.environment !== want) scene.environment = want
+  })
 
   const items = useMemo<SpecItem[]>(() => {
     const q = low ? 0.55 : 1
@@ -339,6 +378,45 @@ function Rig({ s, low }: { s: React.RefObject<CtaState>; low: boolean }) {
   )
 }
 
+/* key/rim lights follow the theme mix; a theme switch also wakes an
+   on-demand (degraded) canvas for the length of the tween */
+function ThemeLights() {
+  const amb = useRef<THREE.AmbientLight>(null)
+  const rim = useRef<THREE.DirectionalLight>(null)
+  const gl = useThree((st) => st.gl)
+  const invalidate = useThree((st) => st.invalidate)
+  const rimDark = useMemo(() => new THREE.Color('#c6ff00'), [])
+  const rimLight = useMemo(() => new THREE.Color('#7fae1a'), [])
+  useEffect(
+    () =>
+      onTheme(() => {
+        const until = performance.now() + 900
+        const tick = () => {
+          invalidate()
+          if (performance.now() < until) requestAnimationFrame(tick)
+        }
+        tick()
+      }),
+    [invalidate],
+  )
+  useFrame(() => {
+    const k = themeState.t
+    if (amb.current) amb.current.intensity = 0.15 + 0.45 * k
+    if (rim.current) {
+      rim.current.color.copy(rimDark).lerp(rimLight, k)
+      rim.current.intensity = 1.4 - 0.5 * k
+    }
+    gl.toneMappingExposure = 1.05 - 0.1 * k
+  })
+  return (
+    <>
+      <ambientLight ref={amb} intensity={0.15} />
+      <directionalLight position={[-4, 5, 6]} intensity={1.2} color="#bff6ff" />
+      <directionalLight ref={rim} position={[5, -1, -3]} intensity={1.4} color="#c6ff00" />
+    </>
+  )
+}
+
 export default function SculptureScene({
   s,
   frameloop,
@@ -359,9 +437,7 @@ export default function SculptureScene({
       camera={{ position: [0, 0, 10], fov: 32, near: 0.1, far: 40 }}
       style={{ pointerEvents: 'none' }}
     >
-      <ambientLight intensity={0.15} />
-      <directionalLight position={[-4, 5, 6]} intensity={1.2} color="#bff6ff" />
-      <directionalLight position={[5, -1, -3]} intensity={1.4} color="#c6ff00" />
+      <ThemeLights />
       {frameloop === 'always' && <PerfGuard onDegrade={onDegrade} />}
       <Backdrop />
       <Rig s={s} low={low} />

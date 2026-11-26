@@ -5,9 +5,9 @@
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(55% 45% at 50% 72%, rgb(198 255 0 / 0.06), transparent 70%),
-    radial-gradient(40% 35% at 25% 65%, rgb(61 232 255 / 0.05), transparent 70%),
-    radial-gradient(70% 50% at 50% 0%, rgb(61 232 255 / 0.045), transparent 70%),
+    radial-gradient(55% 45% at 50% 72%, rgb(var(--c-198-255-0, 198 255 0) / 0.06), transparent 70%),
+    radial-gradient(40% 35% at 25% 65%, rgb(var(--c-61-232-255, 61 232 255) / 0.05), transparent 70%),
+    radial-gradient(70% 50% at 50% 0%, rgb(var(--c-61-232-255, 61 232 255) / 0.045), transparent 70%),
     var(--bg-primary);
 }
 .page-backdrop::after {

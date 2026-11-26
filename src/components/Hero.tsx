@@ -3,11 +3,12 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import GlassCard from './GlassCard'
-import { IconAgents, IconArrow, IconConsultant, IconWebApp, IconWorkflow } from './Icons'
+import { IconAgents, IconArrow, IconConsultant, IconSearch, IconWebApp, IconWorkflow } from './Icons'
 import { useReducedMotion } from '../lib/env'
 import { globeAnchors, sceneMotion } from '../lib/store'
 import { GlobeFallback } from './GlobeLayer'
 import './hero.css'
+import Cta from './Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -18,6 +19,14 @@ const CARDS = [
   { key: 'consultant', title: 'AI Consultant', text: 'Personal recommendations, grounded in your business.', icon: <IconConsultant />, pos: 'tr', delay: 0.8 },
   { key: 'webapp', title: 'Web & App Development', text: 'Websites, portals and mobile apps with AI built in.', icon: <IconWebApp />, pos: 'br', delay: 2.4 },
 ] as const
+
+/* Truthful descriptors only — no invented metrics. Each item is stated on the live site. */
+const STRIP = [
+  { k: 'Agents', v: 'LangGraph · CrewAI' },
+  { k: 'Automation', v: 'n8n · Make · Zapier · GHL' },
+  { k: 'Consulting', v: 'Text chat + voice' },
+  { k: 'Builds', v: 'Web · SaaS · Mobile' },
+]
 
 export default function Hero({ webgl }: { webgl: boolean }) {
   const root = useRef<HTMLElement>(null)
@@ -93,14 +102,14 @@ export default function Hero({ webgl }: { webgl: boolean }) {
           </p>
           <div className="hero__ctas">
             <span data-intro="cta">
-              <a className="btn btn--primary" href="#technology" data-magnetic>
+              <Cta href="#technology" data-magnetic>
                 Explore Solutions <IconArrow />
-              </a>
+              </Cta>
             </span>
             <span data-intro="cta">
-              <a className="btn btn--ghost" href="#technology" data-magnetic>
+              <Cta variant="secondary" href="#technology" data-magnetic>
                 See How It Works
-              </a>
+              </Cta>
             </span>
           </div>
         </div>
@@ -112,6 +121,25 @@ export default function Hero({ webgl }: { webgl: boolean }) {
             </li>
           ))}
         </ul>
+
+        <div className="hero__strip glass" data-intro="strip">
+          <div className="hero__strip-lead">
+            <span className="hero__strip-icon" aria-hidden="true">
+              <IconSearch />
+            </span>
+            <p>
+              <strong>Research first.</strong> We study your business before recommending anything.
+            </p>
+          </div>
+          <dl className="hero__strip-list">
+            {STRIP.map((s) => (
+              <div key={s.k}>
+                <dt>{s.k}</dt>
+                <dd>{s.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
 
       </div>
     </section>

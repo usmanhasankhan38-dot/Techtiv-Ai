@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react'
 import { PREVIEW_MODE, hasWebGL, useReducedMotion } from '../../lib/env'
 import type { CtaState } from './SculptureScene'
 import './finalcta.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -158,7 +159,7 @@ export default function FinalCTA() {
           Analyze your business, talk to the AI Consultant, and get a clear plan for agents, automation, web, and apps — then build with TechTivAI.
         </p>
         <div className="fc__btns">
-          <a className="fc__btn fc__btn--primary" href={`${base}/analyze`} {...ext} data-magnetic>
+          <Cta className="fc__cta" href={`${base}/analyze`} {...ext} data-magnetic>
             <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 15c-1.5 1-2 3.5-2 6 2.5 0 5-.5 6-2M14.5 4.5C17 3 20 3 21 3c0 1 0 4-1.5 6.5L13 16l-5-5z" />
               <path d="M8 11l-3-.5L7.5 8 11 8M13 16l.5 3 2.5-2.5V13" />
@@ -168,10 +169,10 @@ export default function FinalCTA() {
             <svg className="fc__arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" />
             </svg>
-          </a>
-          <a className="fc__btn fc__btn--ghost" href={`${base}/contact`} {...ext} data-magnetic>
+          </Cta>
+          <Cta variant="secondary" className="fc__cta" href={`${base}/contact`} {...ext} data-magnetic>
             <span>Talk to the team</span>
-          </a>
+          </Cta>
         </div>
       </div>
     </section>

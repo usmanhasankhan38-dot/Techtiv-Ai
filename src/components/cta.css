@@ -1,0 +1,234 @@
+/* Global CTA — "illuminated perimeter" pill. Colours come from semantic.css. */
+.cta {
+  --p: 400;
+  --h: 52px;
+  --px: 26px;
+  --fill: var(--cta-primary-fill);
+  --fill-hover: var(--cta-primary-fill-hover);
+  --ink: var(--cta-primary-ink);
+  --base: var(--cta-primary-base);
+  --g1: var(--cta-primary-g1);
+  --g2: var(--cta-primary-g2);
+  --halo: var(--cta-primary-halo);
+  --beam: 0.13;
+  --beam-w: 1.6px;
+  --glow-o: 0.55;
+  --speed: 5.2s;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--h);
+  padding: 0 var(--px);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--cta-shadow), 0 0 34px -8px var(--halo);
+  transition: box-shadow 0.4s var(--ease-out), color 0.3s var(--ease-out);
+}
+.cta--secondary {
+  --fill: var(--cta-secondary-fill);
+  --fill-hover: var(--cta-secondary-fill-hover);
+  --ink: var(--cta-secondary-ink);
+  --base: var(--cta-secondary-base);
+  --g1: var(--cta-secondary-g1);
+  --g2: var(--cta-secondary-g2);
+  --halo: var(--cta-secondary-halo);
+  --beam: 0.09;
+  --glow-o: 0.35;
+  --speed: 6.4s;
+  font-weight: 600;
+}
+.cta--sm {
+  --h: 40px;
+  --px: 17px;
+  font-size: 0.875rem;
+}
+.cta--block {
+  display: flex;
+  width: 100%;
+}
+
+.cta__surface {
+  position: absolute;
+  inset: 1px;
+  z-index: -2;
+  border-radius: inherit;
+  background: var(--fill);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -10px 18px -14px var(--halo);
+  transition: transform 0.18s var(--ease-out), filter 0.3s var(--ease-out);
+}
+.cta__surface::after {
+  /* hover fill sits on its own layer so the gradient can cross-fade */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--fill-hover);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+.cta__ring {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+}
+.cta__s1 {
+  stop-color: var(--g1);
+}
+.cta__s2 {
+  stop-color: var(--g2);
+}
+.cta__base {
+  stroke: var(--base);
+  stroke-width: 1px;
+  transition: stroke 0.35s var(--ease-out);
+}
+.cta__beam,
+.cta__glow {
+  stroke-linecap: round;
+  /* two beams, opposite each other: the dash pattern repeats every half perimeter */
+  stroke-dasharray: calc(var(--p) * var(--beam) * 1px) calc(var(--p) * (0.5 - var(--beam)) * 1px);
+  animation: cta-run var(--speed) linear infinite;
+  animation-play-state: paused;
+  transition: stroke-dasharray 0.5s var(--ease-out), opacity 0.35s var(--ease-out), stroke-width 0.35s var(--ease-out);
+}
+.cta[data-live] .cta__beam,
+.cta[data-live] .cta__glow {
+  animation-play-state: running;
+}
+.cta__beam {
+  stroke-width: var(--beam-w);
+}
+.cta__glow {
+  stroke-width: 5px;
+  opacity: var(--glow-o);
+}
+@keyframes cta-run {
+  to {
+    stroke-dashoffset: calc(var(--p) * -0.5px);
+  }
+}
+
+.cta__label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.18s var(--ease-out), text-shadow 0.35s var(--ease-out);
+}
+.cta__label svg {
+  flex: none;
+  transition: transform 0.35s var(--ease-out);
+}
+
+/* hover — intensify */
+@media (hover: hover) {
+  .cta:hover {
+    --beam: 0.2;
+    --glow-o: 0.95;
+    box-shadow: var(--cta-shadow), 0 0 46px -6px var(--halo), 0 0 0 1px color-mix(in srgb, var(--g2) 18%, transparent);
+  }
+  .cta--secondary:hover {
+    --beam: 0.15;
+    --glow-o: 0.7;
+  }
+  .cta:hover .cta__surface::after {
+    opacity: 1;
+  }
+  .cta:hover .cta__base {
+    stroke: color-mix(in srgb, var(--g2) 55%, transparent);
+  }
+  .cta:hover .cta__label {
+    text-shadow: 0 0 18px color-mix(in srgb, var(--g2) 45%, transparent);
+  }
+  .cta:hover .cta__label svg {
+    transform: translateX(3px);
+  }
+}
+/* press — tactile */
+.cta:active .cta__surface {
+  transform: scale(0.975);
+  filter: brightness(0.92);
+}
+.cta:active .cta__label {
+  transform: scale(0.975);
+}
+.cta:active .cta__beam {
+  stroke-width: 2.4px;
+}
+/* focus */
+.cta:focus-visible {
+  outline: 2px solid var(--cta-focus);
+  outline-offset: 4px;
+}
+
+/* loading / disabled — label and destination preserved, the light stops */
+.cta.is-loading,
+.cta[aria-disabled='true'],
+.cta:disabled {
+  cursor: default;
+}
+.cta[aria-disabled='true'] .cta__beam,
+.cta[aria-disabled='true'] .cta__glow,
+.cta:disabled .cta__beam,
+.cta:disabled .cta__glow {
+  opacity: 0;
+}
+.cta[aria-disabled='true'],
+.cta:disabled {
+  opacity: 0.55;
+}
+.cta.is-loading .cta__beam,
+.cta.is-loading .cta__glow {
+  --beam: 0.06;
+  --speed: 1.4s;
+}
+.cta__spin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: cta-spin 0.8s linear infinite;
+}
+@keyframes cta-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* static ring: full gradient border, no travelling light */
+  .cta__beam,
+  .cta__glow {
+    animation: none;
+    stroke-dasharray: none;
+  }
+  .cta__glow {
+    opacity: calc(var(--glow-o) * 0.35);
+  }
+  .cta__beam {
+    opacity: 0.7;
+  }
+  .cta__spin {
+    animation-duration: 2.4s;
+  }
+}

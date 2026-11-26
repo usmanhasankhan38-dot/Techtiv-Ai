@@ -6,6 +6,7 @@ import { useReducedMotion } from '../../lib/env'
 import { APPS, COPY, DEFAULTS, PLATFORMS, SERVICES, T, TRIGGERS, buildTasks, type AppId, type PlatformId, type TriggerId } from './automationData'
 import { MARKS } from './marks'
 import './automation.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -580,18 +581,18 @@ export default function Automation() {
             <div className="ax-strip__btns">
               {done ? (
                 <>
-                  <button type="button" className="btn btn--primary ax-run" data-magnetic onClick={() => dispatch({ k: 'run', instant: !live })}>
+                  <Cta type="button" className="ax-run" data-magnetic onClick={() => dispatch({ k: 'run', instant: !live })}>
                     <IcReplay /> Replay demo
-                  </button>
+                  </Cta>
                   <button type="button" className="ax-ghost" onClick={() => dispatch({ k: 'reset' })}>
                     Reset
                   </button>
                 </>
               ) : (
                 <>
-                  <button
+                  <Cta
                     type="button"
-                    className="btn btn--primary ax-run"
+                    className="ax-run"
                     data-magnetic
                     onClick={() => dispatch({ k: 'run', instant: !live })}
                     aria-disabled={running || undefined}
@@ -605,7 +606,7 @@ export default function Automation() {
                         <IcPlay /> Run demo
                       </>
                     )}
-                  </button>
+                  </Cta>
                   {s.phase !== 'idle' && !running && (
                     <button type="button" className="ax-ghost" onClick={() => dispatch({ k: 'reset' })}>
                       Reset

@@ -110,7 +110,7 @@ html.has-custom-cursor * {
   padding: 10px 16px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--glass-border-strong);
-  background: rgb(2 11 14 / 0.86);
+  background: rgb(var(--c-2-11-14, 2 11 14) / 0.86);
   backdrop-filter: blur(12px);
   color: var(--text-primary);
   font-size: var(--fs-small);

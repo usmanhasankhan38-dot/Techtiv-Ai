@@ -51,11 +51,11 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent-lime);
-  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(var(--c-198-255-0, 198 255 0) / 0.14), 0 0 10px var(--accent-lime);
   animation: pulse 2.4s var(--ease-in-out) infinite;
 }
 @keyframes pulse {
-  50% { box-shadow: 0 0 0 7px rgb(198 255 0 / 0), 0 0 10px var(--accent-lime); }
+  50% { box-shadow: 0 0 0 7px rgb(var(--c-198-255-0, 198 255 0) / 0), 0 0 10px var(--accent-lime); }
 }
 
 .hero__title {
@@ -132,11 +132,11 @@
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 34% 30%, rgb(232 255 245 / 0.12), transparent 48%),
-    radial-gradient(circle, rgb(232 255 245 / 0.26) 0.9px, transparent 1.5px) 0 0 / 8px 8px,
-    radial-gradient(circle at 50% 50%, #06140b 58%, #030d06 100%);
-  box-shadow: 0 0 0 1px rgb(198 255 0 / 0.16), 0 0 70px rgb(198 255 0 / 0.14), 0 0 120px rgb(61 232 255 / 0.1),
-    inset -40px -50px 90px rgb(0 0 0 / 0.75);
+    radial-gradient(circle at 34% 30%, rgb(var(--c-232-255-245, 232 255 245) / 0.12), transparent 48%),
+    radial-gradient(circle, rgb(var(--c-232-255-245, 232 255 245) / 0.26) 0.9px, transparent 1.5px) 0 0 / 8px 8px,
+    radial-gradient(circle at 50% 50%, rgb(var(--c-6-20-11, 6 20 11)) 58%, rgb(var(--c-3-13-6, 3 13 6)) 100%);
+  box-shadow: 0 0 0 1px rgb(var(--c-198-255-0, 198 255 0) / 0.16), 0 0 70px rgb(var(--c-198-255-0, 198 255 0) / 0.14), 0 0 120px rgb(var(--c-61-232-255, 61 232 255) / 0.1),
+    inset -40px -50px 90px rgb(var(--c-0-0-0, 0 0 0) / calc(0.75 * var(--shadow-k, 1)));
 }
 
 /* ---------- cards ---------- */
@@ -400,7 +400,7 @@
     flex-direction: column;
   }
   .hero__ctas > span,
-  .hero__ctas .btn {
+  .hero__ctas .cta {
     width: 100%;
     justify-content: center;
   }

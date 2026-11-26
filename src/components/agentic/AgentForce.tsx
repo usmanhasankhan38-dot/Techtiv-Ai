@@ -107,7 +107,7 @@ function AgentForce({ live }: { live: boolean }) {
       const core = el.querySelector<HTMLElement>('.af-core')!.getBoundingClientRect()
       const cx = core.left - box.left + core.width / 2
       const cy = core.top - box.top + core.height / 2
-      const R = core.width * 0.28 // reactor shell radius (camera fit, Stage 01)
+      const R = core.width * 0.38 // V3: rim of the geodesic core's outer cage (camera fit in GeodesicCore)
       const paths = MODULES.map((mod) => {
         const card = el.querySelector<HTMLElement>(`[data-mod="${mod.id}"]`)!
         const port = card.querySelector<HTMLElement>('.afc__port')!

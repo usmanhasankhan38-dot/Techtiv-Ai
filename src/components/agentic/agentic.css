@@ -20,11 +20,11 @@
   height: 760px;
   translate: -50% 0;
   background:
-    radial-gradient(36% 40% at 50% 46%, rgb(61 232 255 / 0.07), transparent 70%),
-    radial-gradient(24% 26% at 50% 46%, rgb(198 255 0 / 0.05), transparent 70%),
-    radial-gradient(rgb(232 255 245 / 0.05) 1px, transparent 1.2px) 0 0 / 22px 22px;
-  -webkit-mask-image: radial-gradient(50% 50% at 50% 46%, #000 30%, transparent 75%);
-  mask-image: radial-gradient(50% 50% at 50% 46%, #000 30%, transparent 75%);
+    radial-gradient(36% 40% at 50% 46%, rgb(var(--c-61-232-255, 61 232 255) / 0.07), transparent 70%),
+    radial-gradient(24% 26% at 50% 46%, rgb(var(--c-198-255-0, 198 255 0) / 0.05), transparent 70%),
+    radial-gradient(rgb(var(--c-232-255-245, 232 255 245) / 0.05) 1px, transparent 1.2px) 0 0 / 22px 22px;
+  -webkit-mask-image: radial-gradient(50% 50% at 50% 46%, rgb(var(--c-0-0-0, 0 0 0)) 30%, transparent 75%);
+  mask-image: radial-gradient(50% 50% at 50% 46%, rgb(var(--c-0-0-0, 0 0 0)) 30%, transparent 75%);
   pointer-events: none;
 }
 
@@ -58,7 +58,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent-lime);
-  box-shadow: 0 0 0 4px rgb(198 255 0 / 0.14), 0 0 10px var(--accent-lime);
+  box-shadow: 0 0 0 4px rgb(var(--c-198-255-0, 198 255 0) / 0.14), 0 0 10px var(--accent-lime);
 }
 .ag__title {
   margin: 0;
@@ -141,7 +141,7 @@
    Responsive
    ========================================================================== */
 @media (max-width: 680px) {
-  .ag__cta .btn { width: 100%; justify-content: center; }
+  .ag__cta .cta { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

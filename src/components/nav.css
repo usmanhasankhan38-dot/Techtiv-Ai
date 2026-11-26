@@ -1,23 +1,41 @@
+/* V3 navigation — logo · floating link rail · theme + CTA. Colours: semantic.css */
 .nav {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: var(--z-nav);
-  padding: 14px var(--gutter);
+  padding: 12px var(--gutter);
 }
 .nav__inner {
+  position: relative;
   max-width: var(--content-max);
   margin: 0 auto;
-  height: 60px;
+  height: 64px;
   padding: 0 10px 0 16px;
   display: flex;
   align-items: center;
   gap: var(--space-6);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  background: linear-gradient(180deg, rgb(3 13 6 / 0.72), rgb(3 13 6 / 0.5));
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  box-shadow: var(--glass-inner-highlight);
+  isolation: isolate;
+}
+/* the bar's glass is its own layer so it can fade in on scroll without
+   animating backdrop-filter itself */
+.nav__inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid var(--nav-bar-border-scrolled);
+  background: var(--nav-bar-bg-scrolled);
+  box-shadow: var(--nav-bar-shadow-scrolled);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+}
+.nav.is-scrolled .nav__inner::before,
+.nav.is-open .nav__inner::before {
+  opacity: 1;
 }
 
 .logo {
@@ -53,97 +71,219 @@
   color: transparent;
 }
 
+/* ---------- centred rail ---------- */
 .nav__links {
   flex: 1;
   display: none;
+  justify-content: center;
 }
-.nav__links ul {
+.nav__rail {
+  position: relative;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px;
   display: flex;
-  justify-content: center;
   gap: 2px;
+  border-radius: 12px;
+  border: 1px solid var(--nav-rail-border);
+  background: var(--nav-rail-bg);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  overflow: hidden;
 }
-.nav__links a {
+.nav__rail a {
+  position: relative;
+  z-index: 1;
   display: block;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  border-radius: 8px;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--text-body);
+  color: var(--nav-link);
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+  transition: color 0.25s var(--ease-out), text-shadow 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
 }
-.nav__links a:hover {
-  color: var(--accent-lime);
-  background: var(--nav-hover-bg);
+.nav__rail a:hover,
+.nav__rail a:focus-visible {
+  color: var(--nav-link-hover);
+  text-shadow: var(--nav-link-glow);
+}
+.nav__rail a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+/* active (current section) — a seated chip with a small lime pip; distinct
+   from the travelling hover light */
+.nav__rail a.is-active {
+  color: var(--nav-link-hover);
+  background: var(--nav-active-bg);
+  box-shadow: inset 0 0 0 1px var(--nav-active-border);
+}
+.nav__rail a.is-active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--nav-active-dot);
+  box-shadow: 0 0 6px var(--nav-active-dot);
 }
 
+/* hover light: a concentrated line on the rail's lower edge + a haze that
+   rises from it, like light leaking under a door */
+.nav__glow {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, width;
+}
+.nav__glow-haze {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -18px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, var(--nav-glow-mid), var(--nav-glow-haze) 45%, transparent 72%);
+  filter: blur(6px);
+}
+.nav__glow-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--nav-glow-mid) 22%, var(--nav-glow-core) 50%, var(--nav-glow-mid) 78%, transparent);
+  box-shadow: 0 0 8px var(--nav-glow-mid), 0 -1px 10px var(--nav-glow-haze);
+}
+
+/* ---------- right cluster ---------- */
 .nav__actions {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 10px;
 }
 .nav__login {
-  padding: 8px 12px;
+  padding: 8px 10px;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--text-body);
+  color: var(--nav-link);
   border-radius: var(--radius-sm);
-  transition: color var(--dur-fast) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out), text-shadow 0.3s var(--ease-out);
 }
 .nav__login:hover {
-  color: var(--text-primary);
+  color: var(--nav-link-hover);
+  text-shadow: var(--nav-link-glow);
+}
+.nav__tt--full {
+  display: none;
 }
 
-.nav__menu-btn {
+.nav__menu-btn,
+.nav__panel-close {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-btn);
-  border: 1px solid var(--glass-border);
-  background: transparent;
+  border-radius: 12px;
+  border: 1px solid var(--nav-rail-border);
+  background: var(--nav-rail-bg);
   color: var(--text-primary);
+  cursor: pointer;
+}
+.nav__menu-btn:focus-visible,
+.nav__panel-close:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
 }
 
+/* ---------- mobile panel ---------- */
 .nav__panel {
   max-width: var(--content-max);
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
   margin: 8px auto 0;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-5);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  background: rgb(2 11 14 / 0.94);
+  border: 1px solid var(--nav-rail-border);
+  background: var(--nav-panel-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--nav-bar-shadow-scrolled);
+}
+.nav__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.nav__panel-kicker {
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-soft);
 }
 .nav__panel ul {
   list-style: none;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   padding: 0;
 }
 .nav__panel li a {
   display: block;
-  padding: 14px 8px;
+  padding: 13px 4px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.375rem;
+  color: var(--text-primary);
   border-bottom: 1px solid var(--border-subtle);
 }
-.nav__panel .btn {
-  width: 100%;
-  justify-content: center;
+.nav__panel li a.is-active {
+  color: var(--accent-lime);
+}
+.nav__panel-foot {
+  display: grid;
+  gap: var(--space-4);
+}
+.nav__panel-theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-body);
+  font-size: var(--fs-small);
 }
 
 @media (min-width: 1240px) {
   .nav__links {
-    display: block;
+    display: flex;
   }
+  .nav__tt--full {
+    display: inline-block;
+  }
+  .nav__tt--compact,
   .nav__menu-btn,
   .nav__panel {
     display: none !important;
+  }
+}
+@media (max-width: 1360px) and (min-width: 1240px) {
+  .nav__inner {
+    gap: var(--space-4);
+  }
+  .nav__rail a {
+    padding: 9px 10px;
+    font-size: 0.875rem;
+  }
+  .nav__login {
+    display: none;
   }
 }
 @media (max-width: 560px) {
@@ -151,11 +291,14 @@
     padding: 10px 12px;
   }
   .nav__inner {
-    height: 56px;
+    height: 58px;
     padding: 0 6px 0 12px;
   }
   .nav__login,
-  .nav__actions > .btn {
+  .nav__actions > .nav__cta {
     display: none;
+  }
+  .nav__actions {
+    gap: 8px;
   }
 }

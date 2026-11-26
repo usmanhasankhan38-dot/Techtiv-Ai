@@ -81,7 +81,7 @@
 }
 .ft__pill--accent:hover {
   border-color: var(--accent-lime);
-  background: rgb(198 255 0 / 0.08);
+  background: rgb(var(--c-198-255-0, 198 255 0) / 0.08);
   color: var(--accent-lime);
 }
 .ft__pill:active {
@@ -306,5 +306,12 @@
   .ft__arr,
   .ft__pill {
     transition: none;
+  }
+}
+
+/* V3 CTA system hook */
+@media (max-width: 640px) {
+  .ft__cta {
+    width: 100%;
   }
 }

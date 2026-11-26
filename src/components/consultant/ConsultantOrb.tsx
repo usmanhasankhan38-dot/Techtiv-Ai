@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { onTheme, themeState } from '../../lib/theme'
 
 /* ==========================================================================
    Consultant orb — a single-quad WebGL fragment shader (no three.js).
@@ -14,6 +15,7 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uEnergy;
+uniform float uLight;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
   return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}
@@ -49,7 +51,9 @@ void main(){
   float a=smoothstep(R,R-.012,r);
   float halo=smoothstep(1.,R,r)*(1.-a);
   halo*=halo*(.22+.4*uEnergy);
-  vec3 hc=mix(cyan,lime,.45)*halo;
+  // light theme: halo re-toned from glow to a teal shadow-light, held lower
+  halo*=1.-.4*uLight;
+  vec3 hc=mix(mix(cyan,lime,.45),vec3(0.,.42,.5),uLight)*halo;
   gl_FragColor=vec4(col*a+hc,a+halo*.7);
 }`
 
@@ -91,6 +95,7 @@ export default function ConsultantOrb({ energy, live, className = '' }: { energy
     const uRes = gl.getUniformLocation(prog, 'uRes')
     const uTime = gl.getUniformLocation(prog, 'uTime')
     const uEnergy = gl.getUniformLocation(prog, 'uEnergy')
+    const uLight = gl.getUniformLocation(prog, 'uLight')
     gl.clearColor(0, 0, 0, 0)
 
     const fit = () => {
@@ -110,6 +115,7 @@ export default function ConsultantOrb({ energy, live, className = '' }: { energy
       gl.clear(gl.COLOR_BUFFER_BIT)
       gl.uniform1f(uTime, t)
       gl.uniform1f(uEnergy, e)
+      gl.uniform1f(uLight, themeState.t)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
     fit()
@@ -133,10 +139,21 @@ export default function ConsultantOrb({ energy, live, className = '' }: { energy
       if (visible && live) raf = requestAnimationFrame(loop)
     })
     io.observe(c)
+    // static (reduced-motion) orb: repaint through the theme tween
+    const offTheme = onTheme(() => {
+      if (live) return
+      const until = performance.now() + 900
+      const step = () => {
+        draw(4.2)
+        if (performance.now() < until) requestAnimationFrame(step)
+      }
+      step()
+    })
     return () => {
       cancelAnimationFrame(raf)
       io.disconnect()
       ro.disconnect()
+      offTheme()
     }
   }, [live])
 

@@ -7,6 +7,7 @@ import { IconArrow, IconClose } from '../Icons'
 import { PREVIEW_MODE, useReducedMotion } from '../../lib/env'
 import '../glass.css'
 import './assessment.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -239,9 +240,9 @@ export default function Assessment() {
       </div>
 
       <div className="as__cta">
-        <a className="btn btn--primary" href={ASSESS_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
+        <Cta href={ASSESS_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
           Start My Assessment <IconArrow />
-        </a>
+        </Cta>
         <p className="as__note">
           Select a stage to see what it covers.
           {PREVIEW_MODE && ' The button opens the live TechtivAI assessment in a new tab.'}

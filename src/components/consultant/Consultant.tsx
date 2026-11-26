@@ -7,6 +7,7 @@ import { FALLBACK, matchTopic, TOPICS, VOICE_SCRIPT, type Reply, type Topic } fr
 import { Glyph } from '../glyphs'
 import { PREVIEW_MODE, useReducedMotion } from '../../lib/env'
 import './consultant.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -283,9 +284,9 @@ export default function Consultant() {
             ))}
           </ul>
           <div className="ac__cta">
-            <a className="btn btn--ghost" href={CONSULT_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
+            <Cta variant="secondary" href={CONSULT_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
               <Ico d={I.chat} s={18} /> Talk to AI Consultant
-            </a>
+            </Cta>
             <p className="ac__note">The window shows a scripted preview. {PREVIEW_MODE && 'The button opens the live consultant flow in a new tab.'}</p>
           </div>
         </div>

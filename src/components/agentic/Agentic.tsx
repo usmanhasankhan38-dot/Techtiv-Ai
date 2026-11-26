@@ -8,6 +8,7 @@ import { COPY } from './agenticData'
 import { IconArrow } from '../Icons'
 import { PREVIEW_MODE, useReducedMotion } from '../../lib/env'
 import './agentic.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -86,9 +87,9 @@ export default function Agentic() {
       </div>
       <AgentForce live={live} />
       <div className="ag__cta">
-        <a className="btn btn--primary" href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
+        <Cta href={CTA_URL} target={PREVIEW_MODE ? '_blank' : undefined} rel={PREVIEW_MODE ? 'noopener' : undefined} data-magnetic>
           {COPY.cta} <IconArrow />
-        </a>
+        </Cta>
       </div>
 
       {/* Part B — the seven agents (own state + clock) */}

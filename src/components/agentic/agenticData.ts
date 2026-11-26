@@ -11,8 +11,8 @@ export const COPY = {
   eyebrow: 'AI / Agentic Solutions',
   title: ['Autonomous agents for', 'sales, support, and ops'],
   desc: 'Multi-agent systems that plan, use tools, and execute — sales agents, support agents, and operations agents that work around the clock.',
-  featured: 'AgentForce',
-  featuredAccent: 'Enterprise Suite',
+  featured: 'techtivai',
+  featuredAccent: 'Agent Suite',
   featuredDesc: 'Deploy specialized AI agents that collaborate on research, outreach, analysis, and execution — built on LangGraph and CrewAI.',
   cta: 'See if agents fit your business',
 }

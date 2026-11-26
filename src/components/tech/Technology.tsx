@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { CATEGORIES, ROW_BOTTOM, ROW_TOP, TECH, type Category, type Tech } from './techData'
+import { CATEGORIES, TECH, type Category, type Tech } from './techData'
 import { useReducedMotion } from '../../lib/env'
-import { globeAnchors, sceneMotion } from '../../lib/store'
+import { globeAnchors, sceneMotion, techGlobe } from '../../lib/store'
 import { GlobeFallback } from '../GlobeLayer'
 import { IconArrow, IconClose } from '../Icons'
 import '../glass.css'
@@ -13,141 +13,48 @@ import './technology.css'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 /* ---------------------------------------------------------------------------
-   Logo tile
+   Logo
 --------------------------------------------------------------------------- */
 function LogoMark({ t, size = 'md' }: { t: Tech; size?: 'md' | 'sm' }) {
   if (t.logo) return <img className="logo-mark__img" src={t.logo} alt="" width={36} height={36} draggable={false} />
   return <span className={`logo-mark__text logo-mark__text--${size}`}>{t.mark}</span>
 }
 
-type Selected = { tech: Tech; key: string; row: 'top' | 'bottom'; el: HTMLElement }
+type Via = 'hover' | 'pin' | 'focus'
 
 /* ---------------------------------------------------------------------------
-   One infinite stream. GSAP owns the transform; React never re-renders it
-   per frame. The list is repeated enough times to cover the viewport twice.
---------------------------------------------------------------------------- */
-function Stream({
-  items,
-  row,
-  direction,
-  pxPerSecond,
-  selectedKey,
-  onSelect,
-  registerTween,
-  onKeyboardFocus,
-}: {
-  items: Tech[]
-  row: 'top' | 'bottom'
-  direction: 'ltr' | 'rtl'
-  pxPerSecond: number
-  selectedKey: string | null
-  onSelect: (t: Tech, key: string, row: 'top' | 'bottom', el: HTMLElement) => void
-  registerTween: (row: 'top' | 'bottom', tw: gsap.core.Tween | null) => void
-  onKeyboardFocus: (row: 'top' | 'bottom', el: HTMLElement) => void
-}) {
-  const viewport = useRef<HTMLDivElement>(null)
-  const track = useRef<HTMLDivElement>(null)
-  const [copies, setCopies] = useState(3)
-
-  // tile pitch is read from CSS so breakpoints stay in the stylesheet
-  const measure = useCallback(() => {
-    const tr = track.current
-    if (!tr || !tr.firstElementChild) return null
-    const first = tr.children[0] as HTMLElement
-    const nextSet = tr.children[items.length] as HTMLElement | undefined
-    const setW = nextSet ? nextSet.offsetLeft - first.offsetLeft : tr.scrollWidth / copies
-    return setW
-  }, [items.length, copies])
-
-  useLayoutEffect(() => {
-    const vp = viewport.current!
-    let tween: gsap.core.Tween | null = null
-    const build = () => {
-      const setW = measure()
-      if (!setW) return
-      const need = Math.max(2, Math.ceil((vp.clientWidth * 1.2) / setW) + 1)
-      if (need !== copies) {
-        setCopies(need)
-        return
-      }
-      const prevProgress = tween ? tween.progress() : 0
-      const prevScale = tween ? tween.timeScale() : 1
-      tween?.kill()
-      const from = direction === 'rtl' ? 0 : -setW
-      const to = direction === 'rtl' ? -setW : 0
-      tween = gsap.fromTo(track.current, { x: from }, { x: to, duration: setW / pxPerSecond, ease: 'none', repeat: -1 })
-      tween.progress(prevProgress).timeScale(prevScale)
-      registerTween(row, tween)
-    }
-    build()
-    const ro = new ResizeObserver(() => build())
-    ro.observe(vp)
-    return () => {
-      ro.disconnect()
-      tween?.kill()
-      registerTween(row, null)
-    }
-  }, [copies, direction, measure, pxPerSecond, registerTween, row])
-
-  const sets = useMemo(() => Array.from({ length: copies }, (_, c) => c), [copies])
-
-  return (
-    <div ref={viewport} className={`stream stream--${row}`}>
-      <div ref={track} className="stream__track">
-        {sets.map((c) =>
-          items.map((t, i) => {
-            const key = `${row}-${c}-${i}`
-            // the second copy is the accessible one: the loop range can always bring it to the centre
-            const primary = c === 1
-            const isSel = selectedKey === key
-            return (
-              <button
-                key={key}
-                type="button"
-                className={`tile ${isSel ? 'is-selected' : ''} ${t.logo ? '' : 'tile--text'}`}
-                data-key={key}
-                aria-label={`${t.name}: ${t.desc}`}
-                aria-pressed={isSel}
-                aria-hidden={primary ? undefined : true}
-                tabIndex={primary ? 0 : -1}
-                onClick={(e) => onSelect(t, key, row, e.currentTarget)}
-                onFocus={(e) => {
-                  if (primary && e.currentTarget.matches(':focus-visible')) onKeyboardFocus(row, e.currentTarget)
-                }}
-              >
-                <span className="tile__face">
-                  <LogoMark t={t} />
-                </span>
-                <span className="tile__name" aria-hidden="true">
-                  {t.name}
-                </span>
-              </button>
-            )
-          }),
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ---------------------------------------------------------------------------
-   Section
+   Section — V3: the globe is the interface. 30 hotspots on the globe (one per
+   technology) replace the two logo streams. Hover (mouse), tap (touch) or the
+   accessible index opens one popup at a time; drag turns the globe freely.
+   Per-frame data moves through `techGlobe` (lib/store) — no React renders on
+   pointer movement; React renders only when the open technology changes.
 --------------------------------------------------------------------------- */
 export default function Technology({ webgl }: { webgl: boolean }) {
   const root = useRef<HTMLElement>(null)
   const anchor = useRef<HTMLDivElement>(null)
-  const stage = useRef<HTMLDivElement>(null)
-  const card = useRef<HTMLDivElement>(null)
-  const tweens = useRef<{ top: gsap.core.Tween | null; bottom: gsap.core.Tween | null }>({ top: null, bottom: null })
+  const pop = useRef<HTMLDivElement>(null)
+  const linePath = useRef<SVGPathElement>(null)
+  const lineDot = useRef<SVGCircleElement>(null)
   const reduced = useReducedMotion()
 
-  const [selected, setSelected] = useState<Selected | null>(null)
-  const [userPaused, setUserPaused] = useState(false)
-  const [hovering, setHovering] = useState(false)
-  const [kbFocus, setKbFocus] = useState(false)
-  const [exploreOpen, setExploreOpen] = useState(true)
+  const [active, setActive] = useState(-1)
+  const [seq, setSeq] = useState(0) // bumps on every open, so a re-open always replays the reveal
+  const [via, setVia] = useState<Via>('hover')
+  const [indexOpen, setIndexOpen] = useState(false)
   const [filter, setFilter] = useState<Category | 'All'>('All')
-  const [cardPos, setCardPos] = useState<{ left: number; top: number; place: 'above' | 'below' } | null>(null)
+  const [touched, setTouched] = useState(false)
+
+  const st = useRef({
+    active: -1,
+    via: 'hover' as Via,
+    overPop: false,
+    closeT: 0,
+    lastAns: 0,
+    inView: false,
+    down: null as null | { id: number; x: number; y: number; lx: number; ly: number; moved: boolean; touch: boolean },
+  })
+  const tl = useRef<gsap.core.Timeline | null>(null)
+  const outTl = useRef<gsap.core.Timeline | null>(null)
 
   useEffect(() => {
     globeAnchors.tech = anchor.current
@@ -156,89 +63,248 @@ export default function Technology({ webgl }: { webgl: boolean }) {
     }
   }, [])
 
-  const registerTween = useCallback((row: 'top' | 'bottom', tw: gsap.core.Tween | null) => {
-    tweens.current[row] = tw
+  /* ---------------- open / close (one popup at a time) ---------------- */
+  const open = useCallback((i: number, how: Via) => {
+    const s = st.current
+    window.clearTimeout(s.closeT)
+    s.closeT = 0
+    if (s.active === i) {
+      // a click or keyboard focus upgrades a hover popup so it stays
+      if (how !== 'hover' && s.via === 'hover') {
+        s.via = how
+        setVia(how)
+      }
+      return
+    }
+    outTl.current?.kill()
+    s.active = i
+    s.via = how
+    techGlobe.active = i
+    techGlobe.facing = 1 // the scene refreshes this on its next frame
+    setActive(i)
+    setVia(how)
+    setSeq((n) => n + 1)
+    techGlobe.invalidate?.()
   }, [])
 
-  /* ---- one place decides how fast the streams run ---- */
-  const target = selected || userPaused || kbFocus ? 0 : hovering ? 0.32 : 1
-  useEffect(() => {
-    const list = [tweens.current.top, tweens.current.bottom].filter(Boolean) as gsap.core.Tween[]
-    gsap.to(list, {
-      timeScale: target,
-      duration: target === 0 ? 0.22 : target === 1 ? 0.9 : 0.5,
-      ease: target === 0 ? 'power3.out' : 'power2.inOut',
-      overwrite: 'auto', // only timeScale — never cancel a focus slide on progress
-    })
-  }, [target])
+  const close = useCallback(() => {
+    const s = st.current
+    window.clearTimeout(s.closeT)
+    s.closeT = 0
+    if (s.active < 0) return
+    s.active = -1
+    techGlobe.active = -1
+    techGlobe.invalidate?.()
+    tl.current?.kill()
+    const p = pop.current
+    const done = () => {
+      if (st.current.active < 0) setActive(-1)
+    }
+    if (!p || reduced) return done()
+    outTl.current = gsap
+      .timeline({ onComplete: done })
+      .to(p.querySelectorAll('.tp__line > span'), { yPercent: -110, duration: 0.22, ease: 'power2.in', stagger: 0.03 }, 0)
+      .to(p, { clipPath: 'inset(0% 50% 0% 50% round 16px)', autoAlpha: 0, duration: 0.34, ease: 'power3.in' }, 0.06)
+      .to(linePath.current, { strokeDashoffset: 1, duration: 0.3, ease: 'power2.in' }, 0.1)
+      .to(lineDot.current, { scale: 0, duration: 0.2, ease: 'power2.in', transformOrigin: 'center' }, 0.1)
+  }, [reduced])
 
-  /* ---- selection ---- */
-  const placeCard = useCallback((el: HTMLElement, row: 'top' | 'bottom') => {
-    const st = stage.current
-    if (!st) return
-    const s = st.getBoundingClientRect()
-    const r = el.getBoundingClientRect()
-    const cardW = Math.min(300, s.width - 24)
-    const left = Math.min(Math.max(r.left + r.width / 2 - s.left - cardW / 2, 12), s.width - cardW - 12)
-    const top = row === 'top' ? r.top - s.top - 16 : r.bottom - s.top + 16
-    setCardPos({ left, top, place: row === 'top' ? 'above' : 'below' })
-  }, [])
-
-  const onSelect = useCallback(
-    (tech: Tech, key: string, row: 'top' | 'bottom', el: HTMLElement) => {
-      setSelected((cur) => (cur?.key === key ? null : { tech, key, row, el }))
-      placeCard(el, row)
-      // the streams ease to a stop in ~0.2s; keep the card pinned while they settle
-      window.setTimeout(() => placeCard(el, row), 240)
+  const scheduleClose = useCallback(
+    (ms = 260) => {
+      const s = st.current
+      if (s.closeT) return
+      s.closeT = window.setTimeout(() => {
+        st.current.closeT = 0
+        close()
+      }, ms)
     },
-    [placeCard],
+    [close],
   )
 
-  const dismiss = useCallback((returnFocus = false) => {
-    setSelected((cur) => {
-      if (returnFocus && cur) cur.el.focus({ preventScroll: true })
-      return null
-    })
-  }, [])
+  /* ---------------- popup choreography (GSAP) ---------------- */
+  useLayoutEffect(() => {
+    if (active < 0 || !pop.current) return
+    const p = pop.current
+    tl.current?.kill()
+    if (reduced) {
+      gsap.set(p, { autoAlpha: 1, clipPath: 'inset(0% 0% 0% 0% round 16px)' })
+      gsap.set(linePath.current, { strokeDashoffset: 0 })
+      return
+    }
+    tl.current = gsap
+      .timeline()
+      .fromTo(linePath.current, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.42, ease: 'power2.out' }, 0)
+      .fromTo(lineDot.current, { scale: 0 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', transformOrigin: 'center' }, 0.3)
+      .fromTo(p, { autoAlpha: 1, clipPath: 'inset(0% 50% 0% 50% round 16px)', y: 6, scale: 0.97 }, { clipPath: 'inset(0% 0% 0% 0% round 16px)', y: 0, scale: 1, duration: 0.6, ease: 'expo.out' }, 0.16)
+      .fromTo(p.querySelector('.tp__edge'), { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'expo.out' }, 0.26)
+      .fromTo(p.querySelector('.tp__logo'), { scale: 0.6, rotate: -10, autoAlpha: 0 }, { scale: 1, rotate: 0, autoAlpha: 1, duration: 0.55, ease: 'back.out(2)' }, 0.28)
+      .fromTo(p.querySelectorAll('.tp__line > span'), { yPercent: 110 }, { yPercent: 0, duration: 0.55, ease: 'expo.out', stagger: 0.06 }, 0.34)
+  }, [seq, reduced])
 
+  /* ---------------- frame loop: hover intent, pick answers, placement ---------------- */
   useEffect(() => {
-    if (!selected) return
+    const el = root.current!
+    const io = new IntersectionObserver(([e]) => (st.current.inView = e.isIntersecting))
+    io.observe(el)
+    const tick = () => {
+      const s = st.current
+      const tg = techGlobe
+      if (!s.inView) {
+        if (s.active >= 0) close()
+        return
+      }
+      // mouse hover: the hotspot under the pointer opens; leaving starts a short grace
+      if (tg.mouse) {
+        if (tg.hover >= 0 && tg.hover !== s.active) open(tg.hover, 'hover')
+        else if (tg.hover >= 0) {
+          window.clearTimeout(s.closeT)
+          s.closeT = 0
+        } else if (s.active >= 0 && s.via === 'hover' && !s.overPop) scheduleClose()
+      }
+      // click / tap answers from the scene's raycast
+      if (tg.pickAns.id !== s.lastAns) {
+        s.lastAns = tg.pickAns.id
+        if (tg.pickAns.idx >= 0) open(tg.pickAns.idx, 'pin')
+        else close()
+      }
+      if (s.active < 0 || !pop.current) return
+      // the open hotspot turned away (manual drag): close
+      if (tg.facing < 0.12 && s.via !== 'focus') {
+        close()
+        return
+      }
+      // placement: beside the hotspot, on its outward side, always inside the viewport
+      const p = pop.current
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const pw = p.offsetWidth
+      const ph = p.offsetHeight
+      const x = tg.sx
+      const y = tg.sy
+      const narrow = vw < 768
+      let left: number
+      let top: number
+      let ex: number
+      let ey: number
+      let mx: number
+      let my: number
+      if (!narrow) {
+        let dir = x >= tg.cx ? 1 : -1
+        const gap = 70
+        if (dir > 0 && x + gap + pw > vw - 12) dir = -1
+        else if (dir < 0 && x - gap - pw < 12) dir = 1
+        left = dir > 0 ? x + gap : x - gap - pw
+        top = Math.min(Math.max(y - ph / 2, 84), vh - ph - 12)
+        left = Math.min(Math.max(left, 12), vw - pw - 12)
+        ex = dir > 0 ? left : left + pw
+        ey = Math.min(Math.max(y, top + 18), top + ph - 18)
+        mx = x + dir * 22
+        my = y
+      } else {
+        const below = y < tg.cy
+        top = below ? y + 46 : y - 46 - ph
+        top = Math.min(Math.max(top, 76), vh - ph - 12)
+        left = Math.min(Math.max(x - pw / 2, 12), vw - pw - 12)
+        ex = Math.min(Math.max(x, left + 18), left + pw - 18)
+        ey = below ? top : top + ph
+        mx = x
+        my = y + (below ? 18 : -18)
+      }
+      // left/top (not transform): GSAP owns the popup's transform for its reveal
+      p.style.left = `${left.toFixed(1)}px`
+      p.style.top = `${top.toFixed(1)}px`
+      linePath.current?.setAttribute('d', `M${x.toFixed(1)},${y.toFixed(1)} L${mx.toFixed(1)},${my.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`)
+      lineDot.current?.setAttribute('cx', ex.toFixed(1))
+      lineDot.current?.setAttribute('cy', ey.toFixed(1))
+      if (reduced) tg.invalidate?.()
+    }
+    gsap.ticker.add(tick)
+    return () => {
+      gsap.ticker.remove(tick)
+      io.disconnect()
+    }
+  }, [open, close, scheduleClose, reduced])
+
+  /* ---------------- dismissal: outside press, Escape ---------------- */
+  useEffect(() => {
+    if (active < 0) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') dismiss(true)
+      if (e.key === 'Escape') close()
     }
     const onDown = (e: PointerEvent) => {
       const t = e.target as HTMLElement
-      if (!t.closest('.tile') && !t.closest('.tech-card')) dismiss()
+      if (t.closest('.tp') || t.closest('.tech__globe-anchor') || t.closest('.tech__index')) return
+      close()
     }
-    const onResize = () => dismiss()
     document.addEventListener('keydown', onKey)
     document.addEventListener('pointerdown', onDown)
-    window.addEventListener('resize', onResize)
     return () => {
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('pointerdown', onDown)
-      window.removeEventListener('resize', onResize)
     }
-  }, [selected, dismiss])
+  }, [active, close])
 
-  /* keyboard users: stop the streams and slide the focused logo into view */
-  const onKeyboardFocus = useCallback((row: 'top' | 'bottom', el: HTMLElement) => {
-    setKbFocus(true)
-    const tw = tweens.current[row]
-    const vp = el.closest('.stream') as HTMLElement | null
-    const tr = el.parentElement
-    if (!tw || !vp || !tr) return
-    const vpW = vp.clientWidth
-    const pitchSet = (tr.children[ROW_LEN[row]] as HTMLElement).offsetLeft - (tr.children[0] as HTMLElement).offsetLeft
-    let x = vpW / 2 - (el.offsetLeft + el.offsetWidth / 2)
-    while (x > 0) x -= pitchSet
-    while (x < -pitchSet) x += pitchSet
-    const dir = row === 'top' ? 'ltr' : 'rtl'
-    const p = dir === 'rtl' ? -x / pitchSet : (x + pitchSet) / pitchSet
-    gsap.to(tw, { progress: p, duration: 0.5, ease: 'power2.out', overwrite: 'auto' })
-  }, [])
+  /* ---------------- globe gestures (drag · tap · hover) ---------------- */
+  const onPointerEnter = (e: React.PointerEvent) => {
+    techGlobe.mouse = e.pointerType === 'mouse'
+    if (techGlobe.mouse) techGlobe.overGlobe = true
+  }
+  const onPointerLeave = () => {
+    techGlobe.overGlobe = false
+  }
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    techGlobe.mouse = e.pointerType === 'mouse'
+    st.current.down = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, touch: e.pointerType !== 'mouse' }
+    if (e.pointerType === 'mouse') e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = st.current.down
+    if (d && d.id === e.pointerId) {
+      const dx = e.clientX - d.lx
+      const dy = e.clientY - d.ly
+      if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) {
+        // touch: vertical swipes stay page scrolling (touch-action: pan-y)
+        if (d.touch && Math.abs(e.clientY - d.y) > Math.abs(e.clientX - d.x)) {
+          st.current.down = null
+          return
+        }
+        d.moved = true
+        techGlobe.dragging = true
+        if (!d.touch) e.currentTarget.setPointerCapture(e.pointerId)
+        if (st.current.via === 'hover') close()
+        setTouched(true)
+      }
+      if (d.moved) {
+        techGlobe.dragDX += dx
+        techGlobe.dragDY += d.touch ? 0 : dy
+      }
+      d.lx = e.clientX
+      d.ly = e.clientY
+    }
+    if (reduced || techGlobe.dragging) techGlobe.invalidate?.()
+  }
+  const endPointer = (e: React.PointerEvent, cancelled = false) => {
+    const d = st.current.down
+    if (!d || d.id !== e.pointerId) return
+    if (!d.moved && !cancelled) {
+      // tap / click: ask the scene which hotspot (if any) is under it
+      techGlobe.pick = { x: e.clientX, y: e.clientY, id: techGlobe.pick.id + 1 }
+      techGlobe.invalidate?.()
+      setTouched(true)
+    }
+    techGlobe.dragging = false
+    st.current.down = null
+  }
 
-  /* ---- scroll: globe hand-off + entrance ---- */
+  /* ---------------- accessible index: focus / click turns the globe ---------------- */
+  const showFromIndex = (i: number) => {
+    techGlobe.focusReq = i
+    techGlobe.invalidate?.()
+    open(i, 'focus')
+  }
+
+  /* ---------------- scroll: globe hand-off (unchanged) + entrance ---------------- */
   useGSAP(
     () => {
       const q = gsap.utils.selector(root)
@@ -268,7 +334,10 @@ export default function Technology({ webgl }: { webgl: boolean }) {
           sceneMotion.zoom = 0
         },
       })
-      if (reduced) return
+      if (reduced) {
+        techGlobe.intro = 1
+        return
+      }
       gsap.from(q('.tech__line > span'), {
         yPercent: 115,
         rotate: 2,
@@ -285,23 +354,27 @@ export default function Technology({ webgl }: { webgl: boolean }) {
         ease: 'power3.out',
         scrollTrigger: { trigger: root.current, start: 'top 62%' },
       })
-      gsap.from(q('.stream--top'), { xPercent: -6, opacity: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: q('.tech__stage')[0], start: 'top 75%' } })
-      gsap.from(q('.stream--bottom'), { xPercent: 6, opacity: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: q('.tech__stage')[0], start: 'top 75%' } })
+      // hotspots arrive once the globe has settled, in a lattice-order stagger
+      techGlobe.intro = 0
+      ScrollTrigger.create({
+        trigger: q('.tech__stage')[0],
+        start: 'top 45%',
+        once: true,
+        onEnter: () => {
+          gsap.to(techGlobe, { intro: 1, duration: 1.9, ease: 'power2.out', delay: 0.15 })
+          gsap.fromTo(q('.tech__hint'), { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.8, delay: 1.1, ease: 'power3.out' })
+        },
+      })
       gsap.from(q('.tech__actions'), { y: 16, opacity: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: q('.tech__stage')[0], start: 'top 55%' } })
     },
     { scope: root, dependencies: [reduced] },
   )
 
-  const shown = filter === 'All' ? TECH : TECH.filter((t) => t.category === filter)
+  const tech = active >= 0 ? TECH[active] : null
+  const shown = filter === 'All' ? TECH.map((t, i) => [t, i] as const) : TECH.map((t, i) => [t, i] as const).filter(([t]) => t.category === filter)
 
   return (
-    <section
-      ref={root}
-      id="technology"
-      className={`tech ${selected ? 'has-selection' : ''} ${reduced ? 'is-static' : ''}`}
-      aria-labelledby="tech-title"
-      tabIndex={-1}
-    >
+    <section ref={root} id="technology" className={`tech ${reduced ? 'is-static' : ''} ${webgl ? '' : 'tech--flat'}`} aria-labelledby="tech-title" tabIndex={-1}>
       <header className="tech__head">
         <p className="tech__eyebrow">
           <span className="tech__eyebrow-dot" aria-hidden="true" />
@@ -316,80 +389,91 @@ export default function Technology({ webgl }: { webgl: boolean }) {
         </p>
       </header>
 
-      <div ref={stage} className="tech__stage">
-        <div ref={anchor} className="globe-anchor tech__globe-anchor" aria-hidden="true">
+      <div className="tech__stage">
+        {/* the globe's frame — also the gesture surface (drag to turn, hover or tap a point) */}
+        <div
+          ref={anchor}
+          className={`globe-anchor tech__globe-anchor ${webgl ? 'is-interactive' : ''}`}
+          aria-hidden="true"
+          onPointerEnter={webgl ? onPointerEnter : undefined}
+          onPointerLeave={webgl ? onPointerLeave : undefined}
+          onPointerDown={webgl ? onPointerDown : undefined}
+          onPointerMove={webgl ? onPointerMove : undefined}
+          onPointerUp={webgl ? (e) => endPointer(e) : undefined}
+          onPointerCancel={webgl ? (e) => endPointer(e, true) : undefined}
+        >
           {!webgl && <GlobeFallback />}
         </div>
-
-        {!reduced && (
-          <div
-            className="tech__streams"
-            role="group"
-            aria-label="Technology streams — select a logo to learn more"
-            onPointerEnter={(e) => e.pointerType === 'mouse' && setHovering(true)}
-            onPointerLeave={() => setHovering(false)}
-            onBlur={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node)) setKbFocus(false)
-            }}
-          >
-            <Stream items={ROW_TOP} row="top" direction="ltr" pxPerSecond={34} selectedKey={selected?.key ?? null} onSelect={onSelect} registerTween={registerTween} onKeyboardFocus={onKeyboardFocus} />
-            <Stream items={ROW_BOTTOM} row="bottom" direction="rtl" pxPerSecond={30} selectedKey={selected?.key ?? null} onSelect={onSelect} registerTween={registerTween} onKeyboardFocus={onKeyboardFocus} />
-          </div>
+        {webgl && (
+          <p className={`tech__hint ${touched ? 'is-done' : ''}`} aria-hidden="true">
+            <span className="tech__hint-ico" />
+            <span className="tech__hint-mouse">Drag to turn the globe · hover a point</span>
+            <span className="tech__hint-touch">Swipe to turn · tap a point</span>
+          </p>
         )}
+      </div>
 
+      {/* connection line + popup: fixed overlay, positioned every frame from the hotspot's 3D position */}
+      {webgl && (
+        <svg className={`tp-line ${tech ? 'is-on' : ''}`} aria-hidden="true">
+          <path ref={linePath} pathLength={1} d="M0,0" />
+          <circle ref={lineDot} r="3" cx="0" cy="0" />
+        </svg>
+      )}
+      {webgl && (
         <div
-          ref={card}
-          className={`tech-card glass ${selected && cardPos ? 'is-on' : ''} tech-card--${cardPos?.place ?? 'above'}`}
-          style={cardPos ? { left: cardPos.left, top: cardPos.top } : undefined}
+          ref={pop}
+          className={`tp ${tech ? 'is-on' : ''} tp--${via}`}
           role="status"
           aria-live="polite"
+          onPointerEnter={() => {
+            st.current.overPop = true
+            window.clearTimeout(st.current.closeT)
+            st.current.closeT = 0
+          }}
+          onPointerLeave={() => {
+            st.current.overPop = false
+            if (st.current.via === 'hover') scheduleClose(220)
+          }}
         >
-          {selected && (
+          {tech && (
             <>
-              <div className="tech-card__logo" aria-hidden="true">
-                <LogoMark t={selected.tech} size="sm" />
+              <span className="tp__edge" aria-hidden="true" />
+              <div className="tp__logo" aria-hidden="true">
+                <LogoMark t={tech} size="sm" />
               </div>
-              <div className="tech-card__body">
-                <p className="tech-card__cat">{selected.tech.category}</p>
-                <p className="tech-card__name">{selected.tech.name}</p>
-                <p className="tech-card__desc">{selected.tech.desc}</p>
-                {selected.tech.maker && <p className="tech-card__note">Shown with the {selected.tech.maker}</p>}
-                {!selected.tech.logo && <p className="tech-card__note">Text label · official logo not included</p>}
+              <div className="tp__body">
+                <p className="tp__line tp__cat"><span>{tech.category}</span></p>
+                <p className="tp__line tp__name"><span>{tech.name}</span></p>
+                <p className="tp__line tp__desc"><span>{tech.desc}</span></p>
               </div>
-              <button type="button" className="tech-card__close" onClick={() => dismiss(true)} aria-label={`Close ${selected.tech.name} and resume`}>
-                <IconClose />
-              </button>
+              {via !== 'hover' && (
+                <button type="button" className="tp__close" onClick={close} aria-label={`Close ${tech.name}`}>
+                  <IconClose />
+                </button>
+              )}
             </>
           )}
         </div>
-      </div>
+      )}
 
       <div className="tech__actions">
         <button
           type="button"
           className="btn btn--ghost"
-          aria-expanded={exploreOpen || reduced}
+          aria-expanded={indexOpen || !webgl}
           aria-controls="tech-explore"
-          onClick={() => setExploreOpen((v) => !v)}
-          disabled={reduced}
+          onClick={() => setIndexOpen((v) => !v)}
+          disabled={!webgl}
           data-magnetic
         >
-          {exploreOpen || reduced ? 'Hide full list' : 'Explore all technologies'} <IconArrow />
+          {indexOpen || !webgl ? 'Hide technology index' : 'Browse all technologies'} <IconArrow />
         </button>
-        {!reduced && (
-          <button type="button" className="tech__motion-toggle" aria-pressed={userPaused} onClick={() => setUserPaused((v) => !v)}>
-            <span className={`tech__motion-icon ${userPaused ? 'is-paused' : ''}`} aria-hidden="true" />
-            {userPaused ? 'Play streams' : 'Pause streams'}
-          </button>
-        )}
-        {selected && (
-          <button type="button" className="tech__resume" onClick={() => dismiss(true)}>
-            Resume
-          </button>
-        )}
       </div>
 
-      <div id="tech-explore" className={`tech__explore glass ${exploreOpen || reduced ? 'is-open' : ''}`} hidden={!(exploreOpen || reduced)}>
+      {/* accessible explorer: every technology by name; focus or click turns the globe to it.
+          Without WebGL it falls back to the full list with logos. */}
+      <div id="tech-explore" className={`tech__explore glass ${indexOpen || !webgl ? 'is-open' : ''}`} hidden={!(indexOpen || !webgl)}>
         <div className="tech__filters" role="group" aria-label="Filter technologies">
           {(['All', ...CATEGORIES] as const).map((c) => (
             <button key={c} type="button" className="chip" aria-pressed={filter === c} onClick={() => setFilter(c)}>
@@ -397,23 +481,40 @@ export default function Technology({ webgl }: { webgl: boolean }) {
             </button>
           ))}
         </div>
-        <ul className="tech__grid">
-          {shown.map((t) => (
-            <li key={t.id} className={`tech__item ${t.logo ? '' : 'tech__item--text'}`}>
-              <span className="tech__item-logo" aria-hidden="true">
-                <LogoMark t={t} size="sm" />
-              </span>
-              <span className="tech__item-text">
-                <span className="tech__item-name">{t.name}</span>
-                <span className="tech__item-desc">{t.desc}</span>
-              </span>
-              <span className="tech__item-tag">{t.tag}</span>
-            </li>
-          ))}
-        </ul>
+        {webgl ? (
+          <ul className="tech__index" aria-label="Technologies on the globe">
+            {shown.map(([t, i]) => (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  className={`tech__index-btn ${active === i ? 'is-on' : ''}`}
+                  aria-label={`${t.name}: ${t.desc}`}
+                  aria-pressed={active === i}
+                  onFocus={() => showFromIndex(i)}
+                  onClick={() => showFromIndex(i)}
+                >
+                  {t.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="tech__grid">
+            {shown.map(([t]) => (
+              <li key={t.id} className={`tech__item ${t.logo ? '' : 'tech__item--text'}`}>
+                <span className="tech__item-logo" aria-hidden="true">
+                  <LogoMark t={t} size="sm" />
+                </span>
+                <span className="tech__item-text">
+                  <span className="tech__item-name">{t.name}</span>
+                  <span className="tech__item-desc">{t.desc}</span>
+                </span>
+                <span className="tech__item-tag">{t.tag}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   )
 }
-
-const ROW_LEN = { top: ROW_TOP.length, bottom: ROW_BOTTOM.length }

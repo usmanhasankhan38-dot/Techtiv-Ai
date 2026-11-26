@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { PREVIEW_MODE, useReducedMotion } from '../../lib/env'
 import './pricing.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -192,12 +193,12 @@ function PlanCard({ p, live, lit }: { p: Plan; live: boolean; lit: boolean }) {
 
       <p className="pc__desc">{p.desc}</p>
 
-      <a className={`pc__cta ${p.featured ? 'pc__cta--primary' : ''}`} href={p.href} {...ext} data-magnetic={p.featured ? '' : undefined}>
+      <Cta variant={p.featured ? 'primary' : 'secondary'} className="pc__btn" href={p.href} {...ext} data-magnetic={p.featured ? '' : undefined}>
         <span>{p.cta}</span>
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" />
         </svg>
-      </a>
+      </Cta>
 
       <div className="pc__feat">
         <p className="pc__feat-k">Features included</p>

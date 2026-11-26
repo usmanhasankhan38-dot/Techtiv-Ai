@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { PREVIEW_MODE, useFinePointer, useReducedMotion } from '../../lib/env'
 import './footer.css'
+import Cta from '../Cta'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -162,7 +163,7 @@ export default function Footer() {
       gsap
         .timeline({ scrollTrigger: { trigger: root.current, start: 'top 78%', once: true } })
         .from(q('.ft__line > span'), { yPercent: 110, duration: 1, ease: 'expo.out', stagger: 0.08 })
-        .from(q('.ft__pill'), { y: 14, autoAlpha: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, '-=0.6')
+        .from(q('.ft__cta'), { y: 14, autoAlpha: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, '-=0.6')
         .from(q('.ft__col'), { y: 18, autoAlpha: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08 }, '-=0.55')
         .from(q('.ft__col li'), { y: 10, autoAlpha: 0, duration: 0.5, ease: 'power3.out', stagger: 0.03 }, '<0.05')
 
@@ -230,12 +231,12 @@ export default function Footer() {
             <span className="ft__line"><span>what comes next.</span></span>
           </h2>
           <div className="ft__pills">
-            <a className="ft__pill" href={`${base}/contact`} {...ext} data-magnetic>
+            <Cta variant="secondary" className="ft__cta" href={`${base}/contact`} {...ext} data-magnetic>
               Get in touch <Arrow />
-            </a>
-            <a className="ft__pill ft__pill--accent" href={`${base}/analyze`} {...ext} data-magnetic>
+            </Cta>
+            <Cta className="ft__cta" href={`${base}/analyze`} {...ext} data-magnetic>
               Get my AI Blueprint <Arrow />
-            </a>
+            </Cta>
           </div>
         </div>
         <div className="ft__nav">
