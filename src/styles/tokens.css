@@ -93,5 +93,12 @@
   --z-cursor: 100;
 
   /* ---- Breakpoints (reference — used in @media literals) ----
-     mobile < 768 · tablet 768–1099 · desktop ≥ 1100 */
+     mobile < 768 · tablet 768–1099 · desktop ≥ 1100 · wide ≥ 1680 */
+}
+
+@media (min-width: 1680px) {
+  :root {
+    --content-max: 1460px;
+    --gutter: 64px;
+  }
 }

@@ -432,3 +432,24 @@
     animation: none;
   }
 }
+
+/* ==========================================================================
+   Wide Desktop (1920px+): generous breathing room between cards, globe, strip
+   ========================================================================== */
+@media (min-width: 1680px) {
+  .hero__stage {
+    --card-edge: max(var(--gutter), calc(50% - 760px));
+    --card-w: clamp(248px, 14.5vw, 280px);
+  }
+  .hero__globe-anchor {
+    top: 79%;
+    width: min(42vh, 26vw);
+  }
+  .hero__card--tl { left: calc(var(--card-edge) + 32px); top: 40%; }
+  .hero__card--bl { left: var(--card-edge); top: 65%; }
+  .hero__card--tr { right: calc(var(--card-edge) + 32px); top: 39%; }
+  .hero__card--br { right: var(--card-edge); top: 64%; }
+  .hero__strip {
+    width: min(920px, calc(100% - 2 * (var(--card-edge) + var(--card-w) + 36px)));
+  }
+}

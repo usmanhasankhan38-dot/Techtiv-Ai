@@ -765,3 +765,15 @@
   height: 88%;
   fill: none;
 }
+
+@media (min-width: 1680px) {
+  .af {
+    max-width: 1420px;
+  }
+  .af-stage {
+    gap: 56px;
+  }
+  .af-col {
+    gap: 32px;
+  }
+}
